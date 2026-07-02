@@ -102,3 +102,30 @@ Install into a temporary verification directory. Confirm the installed EXE, inst
 - [ ] **Step 4: Record integrity**
 
 Run `Get-FileHash artifacts\installer\Horizon-Setup-v0.2.1-x64.exe -Algorithm SHA256` and report the absolute path, size, SHA-256, supported OS/architecture, and unsigned SmartScreen caveat.
+
+### Task 5: Increase the optical size of tray icon frames
+
+**Files:**
+- Modify: `scripts/build-logo-assets.ps1`
+- Regenerate: `src/Horizon.App/Assets/Horizon.ico`
+- Verify: `artifacts/installer/Horizon-Setup-v0.2.2-x64.exe`
+
+- [ ] **Step 1: Add a small-frame geometry profile**
+
+For sizes up to `32 px`, reduce plate margin from `7%` to `2.5%`, increase orbit radius from `27.5%` to `32.5%`, increase orbit stroke to `9%`, expand the check endpoints around the center, increase check stroke to `10.5%`, and move/enlarge the node to remain attached to the larger orbit. Keep glow disabled for these frames.
+
+- [ ] **Step 2: Preserve larger artwork**
+
+Keep the 1024px PNG and all frames of `40 px` or larger on the existing geometry profile, so the main-panel Logo and visual master do not change.
+
+- [ ] **Step 3: Regenerate and inspect the ICO**
+
+Run: `& .\scripts\build-logo-assets.ps1`
+
+Expected: nine ICO frames are emitted. Extract the executable icon after publishing and verify the `16–32 px` glyph fills the tray box without touching its edges.
+
+- [ ] **Step 4: Rebuild and verify the installer**
+
+Run: `& .\scripts\build-installer.ps1 -Version '0.2.2'`
+
+Expected: tests and Release publish pass, and `artifacts\installer\Horizon-Setup-v0.2.2-x64.exe` contains the enlarged tray icon.
