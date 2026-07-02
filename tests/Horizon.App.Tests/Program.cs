@@ -19,6 +19,34 @@ AssertEqual(70d, PanelLayout.CoerceHandleTop(area, -500), "top clamp");
 AssertEqual(738d, PanelLayout.CoerceHandleTop(area, 5000), "bottom clamp");
 AssertEqual(false, PanelLayout.IsDragDelta(4), "exact threshold remains a click");
 AssertEqual(true, PanelLayout.IsDragDelta(4.01), "movement above threshold is a drag");
+AssertEqual(
+    true,
+    PanelInteractionRules.ShouldCollapseAfterDeactivation(
+        PanelDisplayState.ExpandedPanel,
+        isWindowActive: false,
+        isApplicationMenuOpen: false),
+    "inactive expanded panel collapses");
+AssertEqual(
+    false,
+    PanelInteractionRules.ShouldCollapseAfterDeactivation(
+        PanelDisplayState.ExpandedPanel,
+        isWindowActive: true,
+        isApplicationMenuOpen: false),
+    "reactivated window stays open");
+AssertEqual(
+    false,
+    PanelInteractionRules.ShouldCollapseAfterDeactivation(
+        PanelDisplayState.ExpandedPanel,
+        isWindowActive: false,
+        isApplicationMenuOpen: true),
+    "application menu keeps panel open");
+AssertEqual(
+    false,
+    PanelInteractionRules.ShouldCollapseAfterDeactivation(
+        PanelDisplayState.CollapsedSliver,
+        isWindowActive: false,
+        isApplicationMenuOpen: false),
+    "collapsed state does not transition again");
 
 Console.WriteLine("Panel layout tests passed.");
 
