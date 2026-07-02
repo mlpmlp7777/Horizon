@@ -7,7 +7,7 @@
         xmlns:conv="clr-namespace:Horizon.App.Converters"
         mc:Ignorable="d"
         Title="Horizon"
-        Width="338"
+        Width="360"
         Height="900"
         FontFamily="Microsoft YaHei UI"
         ResizeMode="NoResize"
@@ -17,8 +17,8 @@
         Topmost="True"
         ShowInTaskbar="True"
         Loaded="MainWindow_OnLoaded"
-        MouseEnter="MainWindow_OnMouseEnter"
-        MouseLeave="MainWindow_OnMouseLeave"
+        Closed="MainWindow_OnClosed"
+        Deactivated="MainWindow_OnDeactivated"
         LocationChanged="MainWindow_OnLocationOrSizeChanged"
         SizeChanged="MainWindow_OnLocationOrSizeChanged"
         PreviewKeyDown="MainWindow_OnPreviewKeyDown">
@@ -48,10 +48,10 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="ButtonChrome" Property="Opacity" Value="0.9" />
+                                <Setter TargetName="ButtonChrome" Property="Opacity" Value="0.92" />
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="ButtonChrome" Property="Opacity" Value="0.78" />
+                                <Setter TargetName="ButtonChrome" Property="Opacity" Value="0.8" />
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter TargetName="ButtonChrome" Property="Opacity" Value="0.4" />
@@ -68,6 +68,41 @@
             <Setter Property="Foreground" Value="#17324A" />
         </Style>
 
+        <Style x:Key="PinToggleButtonStyle" TargetType="ToggleButton">
+            <Setter Property="Background" Value="#F7F9FC" />
+            <Setter Property="BorderBrush" Value="#D9E2EC" />
+            <Setter Property="Foreground" Value="#52677B" />
+            <Setter Property="Padding" Value="10,6" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border x:Name="ToggleChrome"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="12">
+                            <ContentPresenter Margin="{TemplateBinding Padding}"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter Property="Background" Value="#EAF3FD" />
+                                <Setter Property="BorderBrush" Value="#9EC1EA" />
+                                <Setter Property="Foreground" Value="#1B5DAE" />
+                                <Setter Property="FontWeight" Value="SemiBold" />
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ToggleChrome" Property="Opacity" Value="0.92" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <Style x:Key="PrimaryActionButtonStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
             <Setter Property="Background" Value="#173B63" />
             <Setter Property="BorderBrush" Value="#173B63" />
@@ -79,6 +114,38 @@
         <Style x:Key="MiniButtonStyle" TargetType="Button" BasedOn="{StaticResource ActionButtonStyle}">
             <Setter Property="Padding" Value="8,4" />
             <Setter Property="FontSize" Value="10.5" />
+        </Style>
+
+        <Style x:Key="HistoryWeekButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#FFFFFF" />
+            <Setter Property="BorderBrush" Value="#DFE6ED" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="12" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="HistoryCardChrome"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="12">
+                            <ContentPresenter Margin="{TemplateBinding Padding}"
+                                              HorizontalAlignment="Stretch"
+                                              VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="HistoryCardChrome" Property="Background" Value="#F8FBFE" />
+                                <Setter TargetName="HistoryCardChrome" Property="BorderBrush" Value="#B9CDE1" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="HistoryCardChrome" Property="Opacity" Value="0.82" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
         <Style x:Key="LinkButtonStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
@@ -93,8 +160,6 @@
         <Style x:Key="SegmentRadioButtonStyle" TargetType="RadioButton">
             <Setter Property="Foreground" Value="#738396" />
             <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderBrush" Value="Transparent" />
-            <Setter Property="BorderThickness" Value="0" />
             <Setter Property="Padding" Value="0" />
             <Setter Property="FontSize" Value="10" />
             <Setter Property="Cursor" Value="Hand" />
@@ -105,7 +170,7 @@
                                 Margin="2"
                                 Padding="8,5"
                                 Background="Transparent"
-                                CornerRadius="999">
+                                CornerRadius="8">
                             <TextBlock Text="{TemplateBinding Content}"
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center"
@@ -116,14 +181,6 @@
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsChecked" Value="True">
                                 <Setter TargetName="Chip" Property="Background" Value="#FFFFFF" />
-                                <Setter TargetName="Chip" Property="Effect">
-                                    <Setter.Value>
-                                        <DropShadowEffect BlurRadius="8"
-                                                          ShadowDepth="0"
-                                                          Opacity="0.09"
-                                                          Color="#18324A" />
-                                    </Setter.Value>
-                                </Setter>
                                 <Setter Property="Foreground" Value="#173B63" />
                             </Trigger>
                         </ControlTemplate.Triggers>
@@ -161,6 +218,13 @@
             </Setter>
         </Style>
 
+        <Style TargetType="ProgressBar">
+            <Setter Property="Height" Value="6" />
+            <Setter Property="Maximum" Value="100" />
+            <Setter Property="Background" Value="#E3EAF1" />
+            <Setter Property="BorderThickness" Value="0" />
+        </Style>
+
         <Style x:Key="PanelCardStyle" TargetType="Border">
             <Setter Property="Background" Value="#FFFFFF" />
             <Setter Property="BorderBrush" Value="#E1E6ED" />
@@ -188,29 +252,22 @@
                                        Text="{Binding ProjectMeta}"
                                        FontSize="10"
                                        Foreground="#6B7B8C" />
+                            <TextBlock Margin="0,4,0,0"
+                                       Text="{Binding ProgressText, StringFormat=项目进度：{0}}"
+                                       FontSize="10"
+                                       Foreground="#6B7B8C" />
                         </StackPanel>
 
                         <StackPanel Grid.Column="1" HorizontalAlignment="Right">
                             <Border Padding="8,4"
                                     HorizontalAlignment="Right"
                                     Background="{Binding StatusBadgeBackground}"
-                                    CornerRadius="999">
+                                    CornerRadius="10">
                                 <TextBlock Text="{Binding StatusText}"
                                            FontSize="10"
                                            FontWeight="SemiBold"
                                            Foreground="{Binding StatusBadgeForeground}" />
                             </Border>
-                            <WrapPanel Margin="0,8,0,0" HorizontalAlignment="Right">
-                                <Button Style="{StaticResource MiniButtonStyle}"
-                                        Content="编辑"
-                                        Tag="{Binding ProjectId}"
-                                        Click="EditProjectButton_OnClick" />
-                                <Button Margin="6,0,0,0"
-                                        Style="{StaticResource MiniButtonStyle}"
-                                        Content="{Binding ArchiveActionText}"
-                                        Tag="{Binding ProjectId}"
-                                        Click="ToggleProjectArchiveButton_OnClick" />
-                            </WrapPanel>
                         </StackPanel>
                     </Grid>
 
@@ -237,18 +294,19 @@
                                                            FontWeight="SemiBold"
                                                            TextWrapping="Wrap"
                                                            Foreground="#17324A" />
-                                                <TextBlock Margin="0,5,0,0"
-                                                           Text="{Binding MetaText}"
-                                                           FontSize="10"
-                                                           Foreground="#6A7A8A"
-                                                           Visibility="{Binding HasMetaText, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                             </StackPanel>
 
-                                            <Button Grid.Column="1"
-                                                    Style="{StaticResource MiniButtonStyle}"
-                                                    Content="编辑"
-                                                    Tag="{Binding Id}"
-                                                    Click="EditWeeklyTaskButton_OnClick" />
+                                            <WrapPanel Grid.Column="1" HorizontalAlignment="Right">
+                                                <Button Style="{StaticResource MiniButtonStyle}"
+                                                        Content="编辑"
+                                                        Tag="{Binding Id}"
+                                                        Click="EditWeeklyTaskButton_OnClick" />
+                                                <Button Margin="4,0,0,0"
+                                                        Style="{StaticResource MiniButtonStyle}"
+                                                        Content="{Binding ArchiveActionText}"
+                                                        Tag="{Binding Id}"
+                                                        Click="ArchiveWeeklyTaskButton_OnClick" />
+                                            </WrapPanel>
                                         </Grid>
 
                                         <Border Margin="0,8,0,0"
@@ -264,32 +322,79 @@
                                                        TextWrapping="Wrap" />
                                         </Border>
 
-                                        <Border Margin="0,10,0,0"
+                                        <Grid Margin="0,8,0,0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock VerticalAlignment="Center"
+                                                       Margin="0,0,8,0"
+                                                       Text="{Binding ProgressText, StringFormat=进度 {0}}"
+                                                       FontSize="10"
+                                                       Foreground="#40627F" />
+                                            <ProgressBar Grid.Column="1"
+                                                         VerticalAlignment="Center"
+                                                         Foreground="#2A73C9"
+                                                         Value="{Binding ProgressValue, Mode=OneWay}" />
+                                        </Grid>
+
+                                        <Border Margin="0,8,0,0"
                                                 Padding="2"
                                                 Background="#EEF2F6"
                                                 BorderBrush="#E1E7EE"
                                                 BorderThickness="1"
-                                                CornerRadius="999">
+                                                CornerRadius="10">
                                             <UniformGrid Columns="3">
                                                 <RadioButton Style="{StaticResource SegmentRadioButtonStyle}"
-                                                             GroupName="{Binding StatusGroupName}"
+                                                             GroupName="{Binding GroupName}"
                                                              Content="未开始"
                                                              Tag="{Binding Id}"
                                                              IsChecked="{Binding IsTodo, Mode=OneWay}"
                                                              Checked="WeeklyTodoButton_OnChecked" />
                                                 <RadioButton Style="{StaticResource SegmentRadioButtonStyle}"
-                                                             GroupName="{Binding StatusGroupName}"
+                                                             GroupName="{Binding GroupName}"
                                                              Content="进行中"
                                                              Tag="{Binding Id}"
                                                              IsChecked="{Binding IsInProgress, Mode=OneWay}"
                                                              Checked="WeeklyInProgressButton_OnChecked" />
                                                 <RadioButton Style="{StaticResource SegmentRadioButtonStyle}"
-                                                             GroupName="{Binding StatusGroupName}"
+                                                             GroupName="{Binding GroupName}"
                                                              Content="已完成"
                                                              Tag="{Binding Id}"
                                                              IsChecked="{Binding IsDone, Mode=OneWay}"
                                                              Checked="WeeklyDoneButton_OnChecked" />
                                             </UniformGrid>
+                                        </Border>
+
+                                        <Border Margin="0,8,0,0"
+                                                Padding="0,8,0,0"
+                                                BorderBrush="#E2E8EF"
+                                                BorderThickness="0,1,0,0">
+                                            <StackPanel>
+                                                <Grid Visibility="{Binding HasAnnotations, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Margin="0,0,8,0"
+                                                               Text="{Binding LatestAnnotationText}"
+                                                               FontSize="10"
+                                                               Foreground="#526273"
+                                                               TextWrapping="NoWrap"
+                                                               TextTrimming="CharacterEllipsis" />
+                                                    <TextBlock Grid.Column="1"
+                                                               Text="{Binding LatestAnnotationTimeText}"
+                                                               FontSize="9"
+                                                               Foreground="#98A4B0" />
+                                                </Grid>
+                                                <Button Margin="0,5,0,0"
+                                                        HorizontalAlignment="Right"
+                                                        Style="{StaticResource LinkButtonStyle}"
+                                                        Content="{Binding AnnotationActionText}"
+                                                        FontSize="9.5"
+                                                        Tag="{Binding Id}"
+                                                        Click="OpenWeeklyAnnotationsButton_OnClick" />
+                                            </StackPanel>
                                         </Border>
                                     </StackPanel>
                                 </Border>
@@ -301,6 +406,7 @@
                             HorizontalAlignment="Left"
                             Style="{StaticResource LinkButtonStyle}"
                             Content="+ 添加本周任务"
+                            Visibility="{Binding ShowAddTaskAction, Converter={StaticResource BooleanToVisibilityConverter}}"
                             Tag="{Binding ProjectId}"
                             Click="AddWeeklyTaskForProjectButton_OnClick" />
                 </StackPanel>
@@ -311,6 +417,9 @@
             <Border Margin="0,0,0,10"
                     Padding="12"
                     Style="{StaticResource PanelCardStyle}">
+                <Border.BorderBrush>
+                    <SolidColorBrush Color="#B7D9CF" />
+                </Border.BorderBrush>
                 <StackPanel>
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -322,34 +431,27 @@
                             <TextBlock Text="{Binding ProjectName}"
                                        FontSize="13.5"
                                        FontWeight="SemiBold"
-                                       Foreground="#10263C" />
+                                       Foreground="#0A2E22" />
                             <TextBlock Margin="0,4,0,0"
                                        Text="{Binding ProjectMeta}"
                                        FontSize="10"
-                                       Foreground="#6B7B8C" />
+                                       Foreground="#5A7D6F" />
+                            <TextBlock Margin="0,4,0,0"
+                                       Text="{Binding ProgressText, StringFormat=项目进度：{0}}"
+                                       FontSize="10"
+                                       Foreground="#5A7D6F" />
                         </StackPanel>
 
                         <StackPanel Grid.Column="1" HorizontalAlignment="Right">
                             <Border Padding="8,4"
                                     HorizontalAlignment="Right"
                                     Background="{Binding StatusBadgeBackground}"
-                                    CornerRadius="999">
+                                    CornerRadius="10">
                                 <TextBlock Text="{Binding StatusText}"
                                            FontSize="10"
                                            FontWeight="SemiBold"
                                            Foreground="{Binding StatusBadgeForeground}" />
                             </Border>
-                            <WrapPanel Margin="0,8,0,0" HorizontalAlignment="Right">
-                                <Button Style="{StaticResource MiniButtonStyle}"
-                                        Content="编辑"
-                                        Tag="{Binding ProjectId}"
-                                        Click="EditProjectButton_OnClick" />
-                                <Button Margin="6,0,0,0"
-                                        Style="{StaticResource MiniButtonStyle}"
-                                        Content="{Binding ArchiveActionText}"
-                                        Tag="{Binding ProjectId}"
-                                        Click="ToggleProjectArchiveButton_OnClick" />
-                            </WrapPanel>
                         </StackPanel>
                     </Grid>
 
@@ -359,8 +461,8 @@
                             <DataTemplate>
                                 <Border Margin="0,0,0,8"
                                         Padding="10"
-                                        Background="#F7F9FC"
-                                        BorderBrush="#E5EBF2"
+                                        Background="#F4FAF8"
+                                        BorderBrush="#D3EBE3"
                                         BorderThickness="1"
                                         CornerRadius="14">
                                     <StackPanel>
@@ -379,21 +481,27 @@
                                                 <TextBlock Margin="0,5,0,0"
                                                            Text="{Binding MetaText}"
                                                            FontSize="10"
-                                                           Foreground="#6A7A8A"
+                                                           Foreground="#5A7D6F"
                                                            Visibility="{Binding HasMetaText, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                             </StackPanel>
 
-                                            <Button Grid.Column="1"
-                                                    Style="{StaticResource MiniButtonStyle}"
-                                                    Content="编辑"
-                                                    Tag="{Binding Id}"
-                                                    Click="EditLongTermTaskButton_OnClick" />
+                                            <WrapPanel Grid.Column="1" HorizontalAlignment="Right">
+                                                <Button Style="{StaticResource MiniButtonStyle}"
+                                                        Content="编辑"
+                                                        Tag="{Binding Id}"
+                                                        Click="EditLongTermTaskButton_OnClick" />
+                                                <Button Margin="4,0,0,0"
+                                                        Style="{StaticResource MiniButtonStyle}"
+                                                        Content="{Binding ArchiveActionText}"
+                                                        Tag="{Binding Id}"
+                                                        Click="ArchiveLongTermTaskButton_OnClick" />
+                                            </WrapPanel>
                                         </Grid>
 
                                         <Border Margin="0,8,0,0"
                                                 Padding="9,7"
                                                 Background="#FFFFFF"
-                                                BorderBrush="#E5EBF2"
+                                                BorderBrush="#D3EBE3"
                                                 BorderThickness="1"
                                                 CornerRadius="12"
                                                 Visibility="{Binding HasNotesPreview, Converter={StaticResource BooleanToVisibilityConverter}}">
@@ -403,32 +511,80 @@
                                                        TextWrapping="Wrap" />
                                         </Border>
 
-                                        <Border Margin="0,10,0,0"
+                                        <Grid Margin="0,8,0,0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock VerticalAlignment="Center"
+                                                       Margin="0,0,8,0"
+                                                       Text="{Binding ProgressText, StringFormat=进度 {0}}"
+                                                       FontSize="10"
+                                                       Foreground="#2F6C55" />
+                                            <ProgressBar Grid.Column="1"
+                                                         VerticalAlignment="Center"
+                                                         Foreground="#10A06D"
+                                                         Value="{Binding ProgressValue, Mode=OneWay}" />
+                                        </Grid>
+
+                                        <Border Margin="0,8,0,0"
                                                 Padding="2"
-                                                Background="#EEF2F6"
-                                                BorderBrush="#E1E7EE"
+                                                Background="#EDF4F1"
+                                                BorderBrush="#D3E6DF"
                                                 BorderThickness="1"
-                                                CornerRadius="999">
+                                                CornerRadius="10">
                                             <UniformGrid Columns="3">
                                                 <RadioButton Style="{StaticResource SegmentRadioButtonStyle}"
-                                                             GroupName="{Binding StatusGroupName}"
+                                                             GroupName="{Binding GroupName}"
                                                              Content="未开始"
                                                              Tag="{Binding Id}"
                                                              IsChecked="{Binding IsPlanned, Mode=OneWay}"
                                                              Checked="LongTermPlannedButton_OnChecked" />
                                                 <RadioButton Style="{StaticResource SegmentRadioButtonStyle}"
-                                                             GroupName="{Binding StatusGroupName}"
+                                                             GroupName="{Binding GroupName}"
                                                              Content="进行中"
                                                              Tag="{Binding Id}"
                                                              IsChecked="{Binding IsActive, Mode=OneWay}"
                                                              Checked="LongTermActiveButton_OnChecked" />
                                                 <RadioButton Style="{StaticResource SegmentRadioButtonStyle}"
-                                                             GroupName="{Binding StatusGroupName}"
+                                                             GroupName="{Binding GroupName}"
                                                              Content="已完成"
                                                              Tag="{Binding Id}"
                                                              IsChecked="{Binding IsCompleted, Mode=OneWay}"
                                                              Checked="LongTermCompletedButton_OnChecked" />
                                             </UniformGrid>
+                                        </Border>
+
+                                        <Border Margin="0,8,0,0"
+                                                Padding="0,8,0,0"
+                                                BorderBrush="#D9E8E2"
+                                                BorderThickness="0,1,0,0">
+                                            <StackPanel>
+                                                <Grid Visibility="{Binding HasAnnotations, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Margin="0,0,8,0"
+                                                               Text="{Binding LatestAnnotationText}"
+                                                               FontSize="10"
+                                                               Foreground="#526273"
+                                                               TextWrapping="NoWrap"
+                                                               TextTrimming="CharacterEllipsis" />
+                                                    <TextBlock Grid.Column="1"
+                                                               Text="{Binding LatestAnnotationTimeText}"
+                                                               FontSize="9"
+                                                               Foreground="#98A4B0" />
+                                                </Grid>
+                                                <Button Margin="0,5,0,0"
+                                                        HorizontalAlignment="Right"
+                                                        Style="{StaticResource LinkButtonStyle}"
+                                                        Content="{Binding AnnotationActionText}"
+                                                        FontSize="9.5"
+                                                        Foreground="#28715A"
+                                                        Tag="{Binding Id}"
+                                                        Click="OpenLongTermAnnotationsButton_OnClick" />
+                                            </StackPanel>
                                         </Border>
                                     </StackPanel>
                                 </Border>
@@ -440,6 +596,8 @@
                             HorizontalAlignment="Left"
                             Style="{StaticResource LinkButtonStyle}"
                             Content="+ 添加长期任务"
+                            Visibility="{Binding ShowAddTaskAction, Converter={StaticResource BooleanToVisibilityConverter}}"
+                            Foreground="#0D7D5A"
                             Tag="{Binding ProjectId}"
                             Click="AddLongTermTaskForProjectButton_OnClick" />
                 </StackPanel>
@@ -454,8 +612,9 @@
                 BorderBrush="#D8E0E8"
                 BorderThickness="1"
                 CornerRadius="28">
-            <Grid Margin="12">
+            <Grid Margin="18,22,16,16">
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
@@ -478,23 +637,34 @@
                                    Foreground="#708092" />
                     </StackPanel>
 
-                    <WrapPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
-                        <Button x:Name="QuickAddButton"
-                                Margin="0,0,6,0"
-                                Style="{StaticResource PrimaryActionButtonStyle}"
-                                Content="新增内容"
-                                Click="QuickAddButton_OnClick" />
-                        <Button Margin="0,0,6,0"
-                                Style="{StaticResource ActionButtonStyle}"
-                                Content="{Binding ArchiveToggleText}"
-                                Click="ArchiveToggleButton_OnClick" />
-                        <Button Style="{StaticResource ActionButtonStyle}"
-                                Content="{Binding HistoryToggleText}"
-                                Click="HistoryToggleButton_OnClick" />
-                    </WrapPanel>
+                    <ToggleButton Grid.Column="1"
+                                  VerticalAlignment="Center"
+                                  Style="{StaticResource PinToggleButtonStyle}"
+                                  Content="{Binding PinButtonText}"
+                                  IsChecked="{Binding IsPinned, Mode=OneWay}"
+                                  Click="PinButton_OnClick" />
                 </Grid>
 
-                <Border Grid.Row="1"
+                <WrapPanel Grid.Row="1" Margin="0,0,0,10">
+                    <Button x:Name="QuickAddButton"
+                            Margin="0,0,6,0"
+                            Style="{StaticResource PrimaryActionButtonStyle}"
+                            Content="新增内容"
+                            Click="QuickAddButton_OnClick" />
+                    <Button Margin="0,0,6,0"
+                            Style="{StaticResource ActionButtonStyle}"
+                            Content="设置"
+                            Click="SettingsButton_OnClick" />
+                    <Button Margin="0,0,6,0"
+                            Style="{StaticResource ActionButtonStyle}"
+                            Content="{Binding ArchiveToggleText}"
+                            Click="ArchiveToggleButton_OnClick" />
+                    <Button Style="{StaticResource ActionButtonStyle}"
+                            Content="{Binding HistoryToggleText}"
+                            Click="HistoryToggleButton_OnClick" />
+                </WrapPanel>
+
+                <Border Grid.Row="2"
                         Margin="0,0,0,10"
                         Padding="10,8"
                         Background="#EDF4FB"
@@ -507,36 +677,15 @@
                                Foreground="#40627F" />
                 </Border>
 
-                <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+                <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto">
                     <StackPanel>
-                        <Border Padding="16"
-                                Margin="0,0,0,10"
-                                Style="{StaticResource PanelCardStyle}"
-                                Visibility="{Binding ShowProjectFirstEmptyState, Converter={StaticResource BooleanToVisibilityConverter}}">
-                            <StackPanel>
-                                <TextBlock Text="还没有项目"
-                                           FontSize="15"
-                                           FontWeight="SemiBold"
-                                           Foreground="#10263C" />
-                                <TextBlock Margin="0,6,0,12"
-                                           Text="先建立项目，再把本周任务和长期任务挂进去。"
-                                           FontSize="11"
-                                           Foreground="#6B7B8C"
-                                           TextWrapping="Wrap" />
-                                <Button HorizontalAlignment="Left"
-                                        Style="{StaticResource PrimaryActionButtonStyle}"
-                                        Content="新建第一个项目"
-                                        Click="CreateProjectButton_OnClick" />
-                            </StackPanel>
-                        </Border>
-
                         <StackPanel Visibility="{Binding IsCurrentWeeklyView, Converter={StaticResource BooleanToVisibilityConverter}}">
                             <TextBlock Text="本周任务"
                                        FontSize="14.5"
                                        FontWeight="SemiBold"
                                        Foreground="#10263C" />
                             <TextBlock Margin="0,4,0,10"
-                                       Text="鼠标移入展开，移出后会平滑收回右下角。"
+                                       Text="右侧按钮只能贴着屏幕最右边，上下拖动位置，点击后展开面板。"
                                        FontSize="10.5"
                                        Foreground="#6B7B8C" />
 
@@ -549,7 +698,7 @@
                                                FontWeight="SemiBold"
                                                Foreground="#10263C" />
                                     <TextBlock Margin="0,6,0,12"
-                                               Text="只放最重要的几件事，面板会更清晰。"
+                                               Text="本周任务默认就是当前周内容，不再额外设置开始和截止时间。"
                                                FontSize="10.5"
                                                Foreground="#6B7B8C"
                                                TextWrapping="Wrap" />
@@ -567,11 +716,11 @@
                                        Text="长期任务"
                                        FontSize="14.5"
                                        FontWeight="SemiBold"
-                                       Foreground="#10263C" />
+                                       Foreground="#0A2E22" />
                             <TextBlock Margin="0,4,0,10"
-                                       Text="长期任务按项目归类，保留开始和结束时间。"
+                                       Text="长期任务按项目归类，并保留开始时间和结束时间。"
                                        FontSize="10.5"
-                                       Foreground="#6B7B8C" />
+                                       Foreground="#5A7D6F" />
 
                             <Border Padding="14"
                                     Margin="0,0,0,10"
@@ -582,7 +731,7 @@
                                                FontWeight="SemiBold"
                                                Foreground="#10263C" />
                                     <TextBlock Margin="0,6,0,12"
-                                               Text="长期任务会固定在项目下，方便持续推进。"
+                                               Text="可以先在设置里建好项目，再从下拉里快速选择。"
                                                FontSize="10.5"
                                                Foreground="#6B7B8C"
                                                TextWrapping="Wrap" />
@@ -597,71 +746,165 @@
                                           ItemTemplate="{StaticResource LongTermProjectSectionTemplate}" />
                         </StackPanel>
 
-                        <StackPanel Visibility="{Binding ShowWeeklyHistory, Converter={StaticResource BooleanToVisibilityConverter}}">
-                            <TextBlock Text="往期周任务"
+                        <StackPanel Visibility="{Binding ShowHistoryView, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <TextBlock Text="历史"
                                        FontSize="14.5"
                                        FontWeight="SemiBold"
                                        Foreground="#10263C" />
                             <TextBlock Margin="0,4,0,10"
-                                       Text="按周回看之前的任务记录。"
+                                       Text="先按周浏览摘要，再进入所选周查看具体任务。"
                                        FontSize="10.5"
                                        Foreground="#6B7B8C" />
 
-                            <Border Padding="14"
+                            <Border Padding="2"
                                     Margin="0,0,0,10"
-                                    Style="{StaticResource PanelCardStyle}"
-                                    Visibility="{Binding ShowWeeklyHistoryEmptyState, Converter={StaticResource BooleanToVisibilityConverter}}">
-                                <TextBlock Text="当前还没有可查看的往期周任务。"
-                                           FontSize="10.5"
-                                           Foreground="#6B7B8C" />
+                                    Background="#E9EEF4"
+                                    CornerRadius="10">
+                                <UniformGrid Columns="2">
+                                    <RadioButton Style="{StaticResource SegmentRadioButtonStyle}"
+                                                 GroupName="history-kind"
+                                                 Content="每周任务"
+                                                 IsChecked="{Binding IsWeeklyHistoryKind, Mode=OneWay}"
+                                                 Checked="SelectWeeklyHistoryButton_OnClick" />
+                                    <RadioButton Style="{StaticResource SegmentRadioButtonStyle}"
+                                                 GroupName="history-kind"
+                                                 Content="长期任务"
+                                                 IsChecked="{Binding IsLongTermHistoryKind, Mode=OneWay}"
+                                                 Checked="SelectLongTermHistoryButton_OnClick" />
+                                </UniformGrid>
                             </Border>
 
-                            <ItemsControl ItemsSource="{Binding WeeklyHistoryGroups}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border Margin="0,0,0,10"
-                                                Padding="12"
-                                                Style="{StaticResource PanelCardStyle}">
-                                            <StackPanel>
-                                                <TextBlock Text="{Binding WeekTitle}"
-                                                           FontSize="13"
-                                                           FontWeight="SemiBold"
-                                                           Foreground="#10263C" />
-                                                <TextBlock Margin="0,4,0,10"
-                                                           Text="{Binding WeekSubtitle}"
-                                                           FontSize="10"
-                                                           Foreground="#6B7B8C" />
-                                                <ItemsControl ItemsSource="{Binding Sections}"
-                                                              ItemTemplate="{StaticResource WeeklyProjectSectionTemplate}" />
-                                            </StackPanel>
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
+                            <StackPanel Visibility="{Binding ShowHistoryWeekList, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                <Border Padding="14"
+                                        Margin="0,0,0,10"
+                                        Style="{StaticResource PanelCardStyle}"
+                                        Visibility="{Binding ShowHistoryEmptyState, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                    <TextBlock Text="当前类型还没有历史任务。"
+                                               FontSize="10.5"
+                                               Foreground="#6B7B8C" />
+                                </Border>
+
+                                <ItemsControl ItemsSource="{Binding HistoryWeeks}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Button Margin="0,0,0,9"
+                                                    Style="{StaticResource HistoryWeekButtonStyle}"
+                                                    Tag="{Binding WeekStartDate}"
+                                                    Click="OpenHistoryWeekButton_OnClick">
+                                                <StackPanel>
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Text="{Binding WeekTitle}"
+                                                                   FontSize="12"
+                                                                   FontWeight="SemiBold"
+                                                                   Foreground="#253C51" />
+                                                        <TextBlock Grid.Column="1"
+                                                                   Text="›"
+                                                                   Foreground="#5B7895" />
+                                                    </Grid>
+                                                    <TextBlock Margin="0,6,0,0"
+                                                               Text="{Binding SummaryText}"
+                                                               FontSize="10"
+                                                               Foreground="#748392" />
+                                                    <ProgressBar Margin="0,8,0,0"
+                                                                 Foreground="#2A73C9"
+                                                                 Value="{Binding ProgressValue, Mode=OneWay}" />
+                                                </StackPanel>
+                                            </Button>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+
+                            <StackPanel Visibility="{Binding ShowHistoryWeekDetail, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                <Button Margin="0,0,0,10"
+                                        HorizontalAlignment="Left"
+                                        Style="{StaticResource LinkButtonStyle}"
+                                        Content="‹ 返回周列表"
+                                        Click="BackToHistoryWeeksButton_OnClick" />
+                                <TextBlock Text="{Binding SelectedHistoryTitle}"
+                                           FontSize="13"
+                                           FontWeight="SemiBold"
+                                           Foreground="#10263C" />
+                                <TextBlock Margin="0,4,0,10"
+                                           Text="{Binding SelectedHistorySummary}"
+                                           FontSize="10"
+                                           Foreground="#6B7B8C" />
+                                <ItemsControl ItemsSource="{Binding HistoryDetailSections}"
+                                              ItemTemplate="{StaticResource WeeklyProjectSectionTemplate}"
+                                              Visibility="{Binding IsWeeklyHistoryKind, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                <ItemsControl ItemsSource="{Binding HistoryDetailSections}"
+                                              ItemTemplate="{StaticResource LongTermProjectSectionTemplate}"
+                                              Visibility="{Binding IsLongTermHistoryKind, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                            </StackPanel>
                         </StackPanel>
                     </StackPanel>
                 </ScrollViewer>
             </Grid>
         </Border>
 
-        <Border x:Name="CollapsedSensorShell"
-                Width="22"
+        <Border x:Name="CollapsedSliverShell"
+                Width="6"
+                Height="72"
                 Background="#173B63"
-                CornerRadius="11"
-                Visibility="Collapsed">
-            <Grid>
-                <Border Width="6"
-                        Height="34"
+                CornerRadius="6,0,0,6"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Top"
+                Visibility="Collapsed"
+                MouseEnter="CollapsedSliverShell_OnMouseEnter" />
+
+        <Border x:Name="HoverHandleShell"
+                Width="30"
+                Height="92"
+                Background="#173B63"
+                BorderBrush="#0E2640"
+                BorderThickness="1"
+                CornerRadius="14,0,0,14"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Top"
+                Visibility="Collapsed"
+                Cursor="Hand"
+                MouseEnter="HoverHandleShell_OnMouseEnter"
+                MouseLeave="HoverHandleShell_OnMouseLeave"
+                LostMouseCapture="HoverHandleShell_OnLostMouseCapture"
+                PreviewMouseLeftButtonDown="HoverHandleShell_OnMouseLeftButtonDown"
+                PreviewMouseMove="HoverHandleShell_OnMouseMove"
+                PreviewMouseLeftButtonUp="HoverHandleShell_OnMouseLeftButtonUp">
+            <Grid Margin="5,9">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <Border Width="16"
+                        Height="3"
+                        CornerRadius="2"
                         HorizontalAlignment="Center"
-                        VerticalAlignment="Center"
-                        Background="#F1F6FC"
-                        CornerRadius="3" />
+                        Background="#6E8FB4" />
+
+                <TextBlock Grid.Row="1"
+                           Text="H"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           FontSize="15"
+                           FontWeight="Bold"
+                           Foreground="White" />
+
+                <TextBlock Grid.Row="2"
+                           Text="拖"
+                           HorizontalAlignment="Center"
+                           FontSize="9"
+                           Foreground="#B6CAE0" />
             </Grid>
         </Border>
 
         <Grid Background="#78131D28"
               Visibility="{Binding IsEditorOpen, Converter={StaticResource BooleanToVisibilityConverter}}">
-            <Border Width="300"
+            <Border Width="316"
                     Padding="16"
                     Background="#FFFFFF"
                     BorderBrush="#D9E1EA"
@@ -669,7 +912,7 @@
                     CornerRadius="24"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="680">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="720">
                     <StackPanel>
                         <TextBlock Text="{Binding EditorTitle}"
                                    FontSize="17"
@@ -684,35 +927,14 @@
                         <Border Padding="12"
                                 Margin="0,0,0,10"
                                 Style="{StaticResource PanelCardStyle}"
-                                Visibility="{Binding IsProjectEditorOpen, Converter={StaticResource BooleanToVisibilityConverter}}">
-                            <StackPanel>
-                                <TextBlock Text="项目名称" />
-                                <TextBox Margin="0,6,0,10"
-                                         Text="{Binding ProjectForm.Name, UpdateSourceTrigger=PropertyChanged}" />
-                                <TextBlock Text="项目状态" />
-                                <ComboBox Margin="0,6,0,0"
-                                          ItemsSource="{x:Static vm:StatusOptions.ProjectStatuses}"
-                                          SelectedItem="{Binding ProjectForm.Status}">
-                                    <ComboBox.ItemTemplate>
-                                        <DataTemplate>
-                                            <TextBlock Text="{Binding Converter={StaticResource EnumDisplayConverter}}" />
-                                        </DataTemplate>
-                                    </ComboBox.ItemTemplate>
-                                </ComboBox>
-                            </StackPanel>
-                        </Border>
-
-                        <Border Padding="12"
-                                Margin="0,0,0,10"
-                                Style="{StaticResource PanelCardStyle}"
                                 Visibility="{Binding IsWeeklyTaskEditorOpen, Converter={StaticResource BooleanToVisibilityConverter}}">
                             <StackPanel>
-                                <TextBlock Text="所属项目" />
+                                <TextBlock Text="项目名称" />
                                 <ComboBox Margin="0,6,0,10"
-                                          ItemsSource="{Binding ActiveProjectOptions}"
-                                          DisplayMemberPath="Name"
-                                          SelectedValuePath="Id"
-                                          SelectedValue="{Binding WeeklyTaskForm.ProjectId}" />
+                                          IsEditable="True"
+                                          IsTextSearchEnabled="False"
+                                          ItemsSource="{Binding WeeklyProjectNameOptions}"
+                                          Text="{Binding WeeklyTaskForm.ProjectName, UpdateSourceTrigger=PropertyChanged}" />
                                 <TextBlock Text="任务标题" />
                                 <TextBox Margin="0,6,0,10"
                                          Text="{Binding WeeklyTaskForm.Title, UpdateSourceTrigger=PropertyChanged}" />
@@ -726,19 +948,16 @@
                                         </DataTemplate>
                                     </ComboBox.ItemTemplate>
                                 </ComboBox>
-                                <TextBlock Text="周起始日期" />
-                                <DatePicker Margin="0,6,0,10"
-                                            SelectedDate="{Binding WeeklyTaskForm.WeekStartDate}" />
-                                <TextBlock Text="截止日期（可选）" />
-                                <DatePicker Margin="0,6,0,10"
-                                            SelectedDate="{Binding WeeklyTaskForm.DueDate}" />
                                 <TextBlock Text="备注" />
-                                <TextBox Margin="0,6,0,0"
+                                <TextBox Margin="0,6,0,10"
                                          Height="70"
                                          AcceptsReturn="True"
                                          TextWrapping="Wrap"
                                          VerticalScrollBarVisibility="Auto"
                                          Text="{Binding WeeklyTaskForm.Notes, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock Text="进度 (%)" />
+                                <TextBox Margin="0,6,0,0"
+                                         Text="{Binding WeeklyTaskForm.Progress, UpdateSourceTrigger=PropertyChanged}" />
                             </StackPanel>
                         </Border>
 
@@ -747,12 +966,12 @@
                                 Style="{StaticResource PanelCardStyle}"
                                 Visibility="{Binding IsLongTermTaskEditorOpen, Converter={StaticResource BooleanToVisibilityConverter}}">
                             <StackPanel>
-                                <TextBlock Text="所属项目" />
+                                <TextBlock Text="项目名称" />
                                 <ComboBox Margin="0,6,0,10"
-                                          ItemsSource="{Binding ActiveProjectOptions}"
-                                          DisplayMemberPath="Name"
-                                          SelectedValuePath="Id"
-                                          SelectedValue="{Binding LongTermTaskForm.ProjectId}" />
+                                          IsEditable="True"
+                                          IsTextSearchEnabled="False"
+                                          ItemsSource="{Binding LongTermProjectNameOptions}"
+                                          Text="{Binding LongTermTaskForm.ProjectName, UpdateSourceTrigger=PropertyChanged}" />
                                 <TextBlock Text="任务标题" />
                                 <TextBox Margin="0,6,0,10"
                                          Text="{Binding LongTermTaskForm.Title, UpdateSourceTrigger=PropertyChanged}" />
@@ -766,19 +985,210 @@
                                         </DataTemplate>
                                     </ComboBox.ItemTemplate>
                                 </ComboBox>
-                                <TextBlock Text="开始日期" />
+                                <TextBlock Text="开始时间" />
                                 <DatePicker Margin="0,6,0,10"
                                             SelectedDate="{Binding LongTermTaskForm.StartDate}" />
-                                <TextBlock Text="结束日期" />
+                                <TextBlock Text="结束时间" />
                                 <DatePicker Margin="0,6,0,10"
                                             SelectedDate="{Binding LongTermTaskForm.EndDate}" />
                                 <TextBlock Text="备注" />
-                                <TextBox Margin="0,6,0,0"
+                                <TextBox Margin="0,6,0,10"
                                          Height="70"
                                          AcceptsReturn="True"
                                          TextWrapping="Wrap"
                                          VerticalScrollBarVisibility="Auto"
                                          Text="{Binding LongTermTaskForm.Notes, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock Text="进度 (%)" />
+                                <TextBox Margin="0,6,0,0"
+                                         Text="{Binding LongTermTaskForm.Progress, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Padding="12"
+                                Margin="0,0,0,10"
+                                Style="{StaticResource PanelCardStyle}"
+                                Visibility="{Binding IsSettingsOpen, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <StackPanel>
+                                <TextBlock Text="项目列表" />
+                                <TextBlock Margin="0,6,0,10"
+                                           Text="新增和修改后，项目会立即出现在新建任务的下拉框中。下拉框仍支持手动输入。"
+                                           FontSize="10"
+                                           Foreground="#6B7B8C"
+                                           TextWrapping="Wrap" />
+
+                                <Border Padding="10"
+                                        Margin="0,0,0,10"
+                                        Background="#F7F9FC"
+                                        BorderBrush="#E1E6ED"
+                                        BorderThickness="1"
+                                        CornerRadius="14">
+                                    <ItemsControl ItemsSource="{Binding ProjectCatalogRows}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid Margin="0,0,0,8">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                                                        <TextBlock Text="{Binding Name}"
+                                                                   FontWeight="SemiBold"
+                                                                   Foreground="#17324A" />
+                                                        <TextBlock Margin="0,4,0,0"
+                                                                   Text="{Binding Summary}"
+                                                                   FontSize="10"
+                                                                   Foreground="#6B7B8C" />
+                                                    </StackPanel>
+                                                    <WrapPanel Grid.Column="1">
+                                                        <Button Style="{StaticResource MiniButtonStyle}"
+                                                                Content="修改"
+                                                                Tag="{Binding Id}"
+                                                                Click="EditProjectCatalogButton_OnClick" />
+                                                        <Button Margin="4,0,0,0"
+                                                                Style="{StaticResource MiniButtonStyle}"
+                                                                Content="删除"
+                                                                Tag="{Binding Id}"
+                                                                Click="DeleteProjectCatalogButton_OnClick" />
+                                                    </WrapPanel>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </Border>
+
+                                <TextBlock Text="项目名称" />
+                                <TextBox Margin="0,6,0,10"
+                                         Text="{Binding SettingsForm.ProjectNameInput, UpdateSourceTrigger=PropertyChanged}" />
+
+                                <WrapPanel>
+                                    <Button Style="{StaticResource PrimaryActionButtonStyle}"
+                                            Content="{Binding SettingsProjectActionText}"
+                                            Click="SaveProjectCatalogButton_OnClick" />
+                                    <Button Margin="6,0,0,0"
+                                            Style="{StaticResource ActionButtonStyle}"
+                                            Content="取消修改"
+                                            Visibility="{Binding IsEditingProjectInSettings, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                            Click="CancelProjectCatalogEditButton_OnClick" />
+                                </WrapPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Padding="12"
+                                Margin="0,0,0,10"
+                                Style="{StaticResource PanelCardStyle}"
+                                Visibility="{Binding IsAnnotationEditorOpen, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <StackPanel>
+                                <TextBlock Text="批注记录"
+                                           FontWeight="SemiBold"
+                                           Foreground="#17324A" />
+                                <TextBlock Margin="0,4,0,10"
+                                           Text="最新批注显示在任务卡片中；这里可以追加、修改和删除全部批注。"
+                                           FontSize="10"
+                                           Foreground="#6B7B8C"
+                                           TextWrapping="Wrap" />
+
+                                <Border Padding="10"
+                                        Margin="0,0,0,10"
+                                        Background="#F7F9FC"
+                                        CornerRadius="10"
+                                        Visibility="{Binding ShowAnnotationEmptyState, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                    <TextBlock Text="暂无批注，可以从下方添加第一条。"
+                                               FontSize="10"
+                                               Foreground="#7A8998" />
+                                </Border>
+
+                                <ItemsControl ItemsSource="{Binding AnnotationRows}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Padding="10"
+                                                    Margin="0,0,0,8"
+                                                    Background="#F7F9FC"
+                                                    BorderBrush="#E1E7EE"
+                                                    BorderThickness="1"
+                                                    CornerRadius="12">
+                                                <StackPanel>
+                                                    <TextBlock Text="{Binding Content}"
+                                                               FontSize="10.5"
+                                                               Foreground="#324A61"
+                                                               TextWrapping="Wrap" />
+                                                    <Grid Margin="0,7,0,0">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <WrapPanel>
+                                                            <TextBlock Text="{Binding TimeText}"
+                                                                       FontSize="9"
+                                                                       Foreground="#8796A5" />
+                                                            <TextBlock Margin="6,0,0,0"
+                                                                       Text="{Binding EditMarker}"
+                                                                       FontSize="9"
+                                                                       Foreground="#8796A5" />
+                                                        </WrapPanel>
+                                                        <WrapPanel Grid.Column="1">
+                                                            <Button Style="{StaticResource MiniButtonStyle}"
+                                                                    Content="修改"
+                                                                    Tag="{Binding Id}"
+                                                                    Click="EditAnnotationButton_OnClick" />
+                                                            <Button Margin="4,0,0,0"
+                                                                    Style="{StaticResource MiniButtonStyle}"
+                                                                    Content="删除"
+                                                                    Tag="{Binding Id}"
+                                                                    Click="RequestDeleteAnnotationButton_OnClick" />
+                                                        </WrapPanel>
+                                                    </Grid>
+                                                    <Border Margin="0,8,0,0"
+                                                            Padding="8"
+                                                            Background="#FFF3F1"
+                                                            CornerRadius="8"
+                                                            Visibility="{Binding IsDeletePending, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*" />
+                                                                <ColumnDefinition Width="Auto" />
+                                                            </Grid.ColumnDefinitions>
+                                                            <TextBlock VerticalAlignment="Center"
+                                                                       Text="确认删除这条批注？"
+                                                                       FontSize="9.5"
+                                                                       Foreground="#9B3A32" />
+                                                            <WrapPanel Grid.Column="1">
+                                                                <Button Style="{StaticResource MiniButtonStyle}"
+                                                                        Content="确认删除"
+                                                                        Tag="{Binding Id}"
+                                                                        Click="ConfirmDeleteAnnotationButton_OnClick" />
+                                                                <Button Margin="4,0,0,0"
+                                                                        Style="{StaticResource MiniButtonStyle}"
+                                                                        Content="取消"
+                                                                        Click="CancelDeleteAnnotationButton_OnClick" />
+                                                            </WrapPanel>
+                                                        </Grid>
+                                                    </Border>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <TextBlock Margin="0,4,0,0" Text="批注内容" />
+                                <TextBox Margin="0,6,0,10"
+                                         Height="78"
+                                         AcceptsReturn="True"
+                                         TextWrapping="Wrap"
+                                         VerticalScrollBarVisibility="Auto"
+                                         Text="{Binding AnnotationEditor.Content, UpdateSourceTrigger=PropertyChanged}" />
+                                <WrapPanel>
+                                    <Button Style="{StaticResource PrimaryActionButtonStyle}"
+                                            Content="{Binding AnnotationSaveButtonText}"
+                                            Click="SaveAnnotationButton_OnClick" />
+                                    <Button Margin="6,0,0,0"
+                                            Style="{StaticResource ActionButtonStyle}"
+                                            Content="取消修改"
+                                            Click="CancelAnnotationEditButton_OnClick" />
+                                    <Button Margin="6,0,0,0"
+                                            Style="{StaticResource ActionButtonStyle}"
+                                            Content="关闭"
+                                            Click="CancelEditorButton_OnClick" />
+                                </WrapPanel>
                             </StackPanel>
                         </Border>
 
@@ -788,7 +1198,7 @@
                                    TextWrapping="Wrap"
                                    Visibility="{Binding HasEditorValidationMessage, Converter={StaticResource BooleanToVisibilityConverter}}" />
 
-                        <Grid>
+                        <Grid Visibility="{Binding ShowGenericEditorFooter, Converter={StaticResource BooleanToVisibilityConverter}}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="*" />
@@ -798,11 +1208,12 @@
                                     Margin="0,0,8,0"
                                     Style="{StaticResource ActionButtonStyle}"
                                     Content="取消"
+                                    Visibility="{Binding ShowDualFooterButtons, Converter={StaticResource BooleanToVisibilityConverter}}"
                                     Click="CancelEditorButton_OnClick" />
                             <Button Grid.Column="1"
                                     Margin="8,0,0,0"
                                     Style="{StaticResource PrimaryActionButtonStyle}"
-                                    Content="保存"
+                                    Content="{Binding EditorConfirmButtonText}"
                                     Click="SaveEditorButton_OnClick" />
                         </Grid>
                     </StackPanel>

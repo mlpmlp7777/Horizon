@@ -36,7 +36,18 @@ public sealed class HorizonDataStore
         {
             var json = File.ReadAllText(_dataFilePath);
             var data = JsonSerializer.Deserialize<HorizonDataFile>(json, JsonOptions.Default);
-            return data ?? CreateEmpty();
+            var normalized = data ?? CreateEmpty();
+            foreach (var task in normalized.WeeklyTasks)
+            {
+                task.Annotations ??= [];
+            }
+
+            foreach (var task in normalized.LongTermTasks)
+            {
+                task.Annotations ??= [];
+            }
+
+            return normalized;
         }
         catch
         {

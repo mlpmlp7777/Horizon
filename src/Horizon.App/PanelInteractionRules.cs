@@ -5,10 +5,12 @@ internal static class PanelInteractionRules
     internal static bool ShouldCollapseAfterDeactivation(
         PanelDisplayState state,
         bool isWindowActive,
-        bool isApplicationMenuOpen)
+        bool isApplicationMenuOpen,
+        bool isPinned)
     {
         return state == PanelDisplayState.ExpandedPanel &&
                !isWindowActive &&
-               !isApplicationMenuOpen;
+               !isApplicationMenuOpen &&
+               !isPinned;
     }
 }

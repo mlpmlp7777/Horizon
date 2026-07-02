@@ -1,5 +1,7 @@
 using System.Windows;
 using Horizon.App;
+using Horizon.App.Models;
+using Horizon.App.Services;
 
 var area = new Rect(100, 50, 1200, 800);
 
@@ -24,29 +26,88 @@ AssertEqual(
     PanelInteractionRules.ShouldCollapseAfterDeactivation(
         PanelDisplayState.ExpandedPanel,
         isWindowActive: false,
-        isApplicationMenuOpen: false),
+        isApplicationMenuOpen: false,
+        isPinned: false),
     "inactive expanded panel collapses");
 AssertEqual(
     false,
     PanelInteractionRules.ShouldCollapseAfterDeactivation(
         PanelDisplayState.ExpandedPanel,
         isWindowActive: true,
-        isApplicationMenuOpen: false),
+        isApplicationMenuOpen: false,
+        isPinned: false),
     "reactivated window stays open");
 AssertEqual(
     false,
     PanelInteractionRules.ShouldCollapseAfterDeactivation(
         PanelDisplayState.ExpandedPanel,
         isWindowActive: false,
-        isApplicationMenuOpen: true),
+        isApplicationMenuOpen: true,
+        isPinned: false),
     "application menu keeps panel open");
 AssertEqual(
     false,
     PanelInteractionRules.ShouldCollapseAfterDeactivation(
         PanelDisplayState.CollapsedSliver,
         isWindowActive: false,
-        isApplicationMenuOpen: false),
+        isApplicationMenuOpen: false,
+        isPinned: false),
     "collapsed state does not transition again");
+AssertEqual(
+    false,
+    PanelInteractionRules.ShouldCollapseAfterDeactivation(
+        PanelDisplayState.ExpandedPanel,
+        isWindowActive: false,
+        isApplicationMenuOpen: false,
+        isPinned: true),
+    "pinned expanded panel stays open");
+AssertEqual(false, TaskAnnotationRules.IsValid("   "), "blank annotation rejected");
+AssertEqual(true, TaskAnnotationRules.IsValid(new string('a', 500)), "500 characters accepted");
+AssertEqual(false, TaskAnnotationRules.IsValid(new string('a', 501)), "501 characters rejected");
+AssertEqual("今天 14:20", TaskAnnotationRules.FormatLocalTime(
+    new DateTime(2026, 7, 2, 14, 20, 0), new DateTime(2026, 7, 2, 18, 0, 0)), "today label");
+AssertEqual("昨天 09:05", TaskAnnotationRules.FormatLocalTime(
+    new DateTime(2026, 7, 1, 9, 5, 0), new DateTime(2026, 7, 2, 18, 0, 0)), "yesterday label");
+var annotationList = new List<TaskAnnotation>();
+var addedAnnotation = TaskAnnotationRules.Add(annotationList, "  初始批注  ", new DateTime(2026, 7, 2, 1, 0, 0, DateTimeKind.Utc));
+AssertEqual("初始批注", addedAnnotation.Content, "annotation content cleaned");
+AssertEqual(true, TaskAnnotationRules.Update(annotationList, addedAnnotation.Id, "修改后", new DateTime(2026, 7, 2, 2, 0, 0, DateTimeKind.Utc)), "annotation updated");
+AssertEqual("修改后", addedAnnotation.Content, "updated content stored");
+AssertEqual(false, TaskAnnotationRules.Update(annotationList, "missing", "x", DateTime.UtcNow), "unknown annotation not updated");
+AssertEqual(true, TaskAnnotationRules.Delete(annotationList, addedAnnotation.Id), "annotation deleted");
+AssertEqual(false, TaskAnnotationRules.Delete(annotationList, addedAnnotation.Id), "annotation cannot be deleted twice");
+var rolloverData = new HorizonDataFile();
+var oldWeekStart = new DateTime(2026, 6, 29);
+var currentWeekStart = new DateTime(2026, 7, 6);
+var rolloverNowUtc = new DateTime(2026, 7, 6, 0, 5, 0, DateTimeKind.Utc);
+var unfinishedWeekly = new WeeklyTaskItem
+{
+    WeekStartDate = oldWeekStart,
+    Status = WeeklyTaskStatus.InProgress,
+    UpdatedAt = rolloverNowUtc.AddDays(-2)
+};
+var completedWeekly = new WeeklyTaskItem
+{
+    WeekStartDate = oldWeekStart,
+    Status = WeeklyTaskStatus.Done,
+    UpdatedAt = rolloverNowUtc.AddDays(-2)
+};
+var completedLongTerm = new LongTermTaskItem
+{
+    Status = LongTermTaskStatus.Completed,
+    UpdatedAt = rolloverNowUtc.AddDays(-2)
+};
+rolloverData.WeeklyTasks.Add(unfinishedWeekly);
+rolloverData.WeeklyTasks.Add(completedWeekly);
+rolloverData.LongTermTasks.Add(completedLongTerm);
+AssertEqual(true, WeeklyRolloverService.Reconcile(rolloverData, currentWeekStart, rolloverNowUtc), "rollover changes data");
+AssertEqual(currentWeekStart, unfinishedWeekly.WeekStartDate, "unfinished weekly task carried forward");
+AssertEqual(oldWeekStart, completedWeekly.WeekStartDate, "completed weekly task keeps original week");
+AssertEqual(false, WeeklyRolloverService.IsWeeklyInCurrentView(completedWeekly, currentWeekStart), "old completed weekly leaves current view");
+AssertEqual(false, WeeklyRolloverService.IsLongTermInCurrentView(completedLongTerm, currentWeekStart), "old completed long-term leaves current view");
+completedWeekly.Status = WeeklyTaskStatus.InProgress;
+WeeklyRolloverService.Reconcile(rolloverData, currentWeekStart, rolloverNowUtc.AddMinutes(1));
+AssertEqual(true, completedWeekly.CompletedAt is null, "restored weekly clears completion time");
 
 Console.WriteLine("Panel layout tests passed.");
 

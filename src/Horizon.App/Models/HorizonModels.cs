@@ -28,6 +28,7 @@ public enum LongTermTaskStatus
 public sealed class HorizonDataFile
 {
     public HorizonMeta Meta { get; set; } = new();
+    public HorizonSettings Settings { get; set; } = new();
     public List<ProjectItem> Projects { get; set; } = [];
     public List<WeeklyTaskItem> WeeklyTasks { get; set; } = [];
     public List<LongTermTaskItem> LongTermTasks { get; set; } = [];
@@ -39,12 +40,19 @@ public sealed class HorizonMeta
     public DateTime LastSavedAt { get; set; } = DateTime.UtcNow;
 }
 
+public sealed class HorizonSettings
+{
+    public List<string> WeeklyProjectNames { get; set; } = [];
+    public List<string> LongTermProjectNames { get; set; } = [];
+    public double CollapsedButtonTop { get; set; } = 160;
+    public bool IsPinned { get; set; }
+}
+
 public sealed class ProjectItem
 {
     public string Id { get; set; } = Guid.NewGuid().ToString("N");
     public string Name { get; set; } = string.Empty;
     public ProjectStatus Status { get; set; } = ProjectStatus.Active;
-    public bool Archived { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }
@@ -58,6 +66,10 @@ public sealed class WeeklyTaskItem
     public DateTime WeekStartDate { get; set; } = DateTime.Today;
     public DateTime? DueDate { get; set; }
     public string? Notes { get; set; }
+    public int Progress { get; set; }
+    public List<TaskAnnotation> Annotations { get; set; } = [];
+    public DateTime? CompletedAt { get; set; }
+    public bool Archived { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }
@@ -71,6 +83,18 @@ public sealed class LongTermTaskItem
     public DateTime StartDate { get; set; } = DateTime.Today;
     public DateTime EndDate { get; set; } = DateTime.Today;
     public string? Notes { get; set; }
+    public int Progress { get; set; }
+    public List<TaskAnnotation> Annotations { get; set; } = [];
+    public DateTime? CompletedAt { get; set; }
+    public bool Archived { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+}
+
+public sealed class TaskAnnotation
+{
+    public string Id { get; set; } = Guid.NewGuid().ToString("N");
+    public string Content { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

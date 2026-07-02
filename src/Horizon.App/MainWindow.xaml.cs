@@ -12,18 +12,24 @@ namespace Horizon.App;
 
 public partial class MainWindow : Window
 {
-    private const double ExpandedPanelWidth = 338;
-    private const double CollapsedSensorWidth = 22;
-    private const double CollapsedSensorHeight = 128;
-    private const double ScreenPadding = 6;
-    private static readonly TimeSpan HideDelay = TimeSpan.FromMilliseconds(220);
-    private static readonly TimeSpan PointerPollInterval = TimeSpan.FromMilliseconds(90);
+    private const double ExpandedPanelInset = 6;
+    private const int HoverAnimationMilliseconds = 120;
+    private const int PanelAnimationMilliseconds = 220;
+    private static readonly TimeSpan HoverLeaveDelay = TimeSpan.FromMilliseconds(250);
 
-    private readonly DispatcherTimer _hideTimer;
-    private readonly DispatcherTimer _pointerTimer;
     private readonly MainViewModel _viewModel;
+    private readonly DispatcherTimer _hoverLeaveTimer;
+    private readonly DispatcherTimer _dateCheckTimer;
+    private PanelDisplayState _panelState = PanelDisplayState.CollapsedSliver;
     private bool _isAnimating;
-    private bool _isExpanded;
+    private int _animationVersion;
+    private bool _isUpdatingStatus;
+    private bool _isDraggingHandle;
+    private bool _dragMoved;
+    private double _dragStartScreenY;
+    private double _dragStartTop;
+    private double _collapsedButtonTop;
+    private DateTime _lastObservedDate;
 
     public MainWindow()
     {
@@ -32,18 +38,40 @@ public partial class MainWindow : Window
         _viewModel = new MainViewModel(new HorizonDataStore());
         DataContext = _viewModel;
 
-        _hideTimer = new DispatcherTimer { Interval = HideDelay };
-        _hideTimer.Tick += HideTimer_OnTick;
+        _hoverLeaveTimer = new DispatcherTimer { Interval = HoverLeaveDelay };
+        _hoverLeaveTimer.Tick += HoverLeaveTimer_OnTick;
 
-        _pointerTimer = new DispatcherTimer { Interval = PointerPollInterval };
-        _pointerTimer.Tick += PointerTimer_OnTick;
+        _dateCheckTimer = new DispatcherTimer { Interval = TimeSpan.FromMinutes(1) };
+        _dateCheckTimer.Tick += DateCheckTimer_OnTick;
     }
 
     private void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
     {
+        _collapsedButtonTop = PanelLayout.CoerceHandleTop(
+            SystemParameters.WorkArea,
+            _viewModel.GetCollapsedButtonTop());
         ConfigureWindow();
-        CollapsePanel(animated: false);
-        _pointerTimer.Start();
+        SetPanelState(PanelDisplayState.CollapsedSliver, animated: false);
+        _lastObservedDate = DateTime.Today;
+        _dateCheckTimer.Start();
+    }
+
+    private void MainWindow_OnClosed(object? sender, EventArgs e)
+    {
+        _hoverLeaveTimer.Stop();
+        _dateCheckTimer.Stop();
+    }
+
+    private void DateCheckTimer_OnTick(object? sender, EventArgs e)
+    {
+        var today = DateTime.Today;
+        if (today == _lastObservedDate)
+        {
+            return;
+        }
+
+        _lastObservedDate = today;
+        _viewModel.ReconcileForDate(today, DateTime.UtcNow);
     }
 
     private void MainWindow_OnLocationOrSizeChanged(object sender, EventArgs e)
@@ -53,17 +81,32 @@ public partial class MainWindow : Window
             return;
         }
 
-        ApplyWindowState(animated: false);
+        _collapsedButtonTop = PanelLayout.CoerceHandleTop(
+            SystemParameters.WorkArea,
+            _collapsedButtonTop);
+        ApplyWindowState(animated: false, animationMilliseconds: 0);
     }
 
-    private void MainWindow_OnMouseEnter(object sender, MouseEventArgs e)
+    private void MainWindow_OnDeactivated(object? sender, EventArgs e)
     {
-        ExpandPanel();
+        Dispatcher.BeginInvoke(
+            DispatcherPriority.ApplicationIdle,
+            new Action(CollapsePanelAfterDeactivation));
     }
 
-    private void MainWindow_OnMouseLeave(object sender, MouseEventArgs e)
+    private void CollapsePanelAfterDeactivation()
     {
-        StartHideCountdown();
+        var isApplicationMenuOpen = QuickAddButton.ContextMenu?.IsOpen == true;
+        if (!PanelInteractionRules.ShouldCollapseAfterDeactivation(
+                _panelState,
+                IsActive,
+                isApplicationMenuOpen,
+                _viewModel.IsPinned))
+        {
+            return;
+        }
+
+        SetPanelState(PanelDisplayState.CollapsedSliver);
     }
 
     private void MainWindow_OnPreviewKeyDown(object sender, KeyEventArgs e)
@@ -75,7 +118,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        if (e.Key == Key.Escape)
+        if (e.Key == Key.Escape && _panelState == PanelDisplayState.ExpandedPanel)
         {
             CollapsePanel();
             e.Handled = true;
@@ -85,7 +128,6 @@ public partial class MainWindow : Window
     private void QuickAddButton_OnClick(object sender, RoutedEventArgs e)
     {
         var menu = new ContextMenu();
-        menu.Items.Add(BuildMenuItem("新建项目", (_, _) => _viewModel.OpenCreateProject()));
         menu.Items.Add(BuildMenuItem("新建本周任务", (_, _) => _viewModel.OpenCreateWeeklyTask()));
         menu.Items.Add(BuildMenuItem("新建长期任务", (_, _) => _viewModel.OpenCreateLongTermTask()));
 
@@ -93,22 +135,50 @@ public partial class MainWindow : Window
         menu.IsOpen = true;
     }
 
+    private void SettingsButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        _viewModel.OpenSettings();
+        ExpandPanel();
+    }
+
+    private void PinButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        _viewModel.TogglePinned();
+    }
+
     private void ArchiveToggleButton_OnClick(object sender, RoutedEventArgs e)
     {
-        _viewModel.ToggleArchiveFilter();
+        _viewModel.ToggleArchivedTasks();
         ExpandPanel();
     }
 
     private void HistoryToggleButton_OnClick(object sender, RoutedEventArgs e)
     {
-        _viewModel.ToggleWeeklyHistory();
+        _viewModel.ToggleHistory();
         ExpandPanel();
     }
 
-    private void CreateProjectButton_OnClick(object sender, RoutedEventArgs e)
+    private void SelectWeeklyHistoryButton_OnClick(object sender, RoutedEventArgs e)
     {
-        _viewModel.OpenCreateProject();
-        ExpandPanel();
+        _viewModel.SelectWeeklyHistory();
+    }
+
+    private void SelectLongTermHistoryButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        _viewModel.SelectLongTermHistory();
+    }
+
+    private void OpenHistoryWeekButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement { Tag: DateTime weekStart })
+        {
+            _viewModel.OpenHistoryWeek(weekStart);
+        }
+    }
+
+    private void BackToHistoryWeeksButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        _viewModel.BackToHistoryWeeks();
     }
 
     private void CreateWeeklyTaskButton_OnClick(object sender, RoutedEventArgs e)
@@ -123,29 +193,12 @@ public partial class MainWindow : Window
         ExpandPanel();
     }
 
-    private void EditProjectButton_OnClick(object sender, RoutedEventArgs e)
-    {
-        if (TryGetTag(sender, out var projectId))
-        {
-            _viewModel.OpenEditProject(projectId);
-            ExpandPanel();
-        }
-    }
-
-    private void ToggleProjectArchiveButton_OnClick(object sender, RoutedEventArgs e)
-    {
-        if (TryGetTag(sender, out var projectId))
-        {
-            _viewModel.ToggleProjectArchive(projectId);
-            ExpandPanel();
-        }
-    }
-
     private void AddWeeklyTaskForProjectButton_OnClick(object sender, RoutedEventArgs e)
     {
         if (TryGetTag(sender, out var projectId))
         {
-            _viewModel.OpenCreateWeeklyTask(projectId);
+            _viewModel.OpenCreateWeeklyTask();
+            _viewModel.WeeklyTaskForm.ProjectName = FindProjectName(projectId);
             ExpandPanel();
         }
     }
@@ -154,7 +207,8 @@ public partial class MainWindow : Window
     {
         if (TryGetTag(sender, out var projectId))
         {
-            _viewModel.OpenCreateLongTermTask(projectId);
+            _viewModel.OpenCreateLongTermTask();
+            _viewModel.LongTermTaskForm.ProjectName = FindProjectName(projectId);
             ExpandPanel();
         }
     }
@@ -177,39 +231,112 @@ public partial class MainWindow : Window
         }
     }
 
+    private void OpenWeeklyAnnotationsButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (TryGetTag(sender, out var taskId))
+        {
+            _viewModel.OpenWeeklyAnnotations(taskId);
+            ExpandPanel();
+        }
+    }
+
+    private void OpenLongTermAnnotationsButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (TryGetTag(sender, out var taskId))
+        {
+            _viewModel.OpenLongTermAnnotations(taskId);
+            ExpandPanel();
+        }
+    }
+
+    private void ArchiveWeeklyTaskButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (TryGetTag(sender, out var taskId))
+        {
+            _viewModel.ToggleWeeklyTaskArchive(taskId);
+            ExpandPanel();
+        }
+    }
+
+    private void ArchiveLongTermTaskButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (TryGetTag(sender, out var taskId))
+        {
+            _viewModel.ToggleLongTermTaskArchive(taskId);
+            ExpandPanel();
+        }
+    }
+
     private void WeeklyTodoButton_OnChecked(object sender, RoutedEventArgs e)
     {
+        if (_isUpdatingStatus)
+        {
+            return;
+        }
+
+        _isUpdatingStatus = true;
         UpdateWeeklyStatusFromButton(sender, WeeklyTaskStatus.Todo);
+        Dispatcher.BeginInvoke(() => _isUpdatingStatus = false);
     }
 
     private void WeeklyInProgressButton_OnChecked(object sender, RoutedEventArgs e)
     {
+        if (_isUpdatingStatus)
+        {
+            return;
+        }
+
+        _isUpdatingStatus = true;
         UpdateWeeklyStatusFromButton(sender, WeeklyTaskStatus.InProgress);
+        Dispatcher.BeginInvoke(() => _isUpdatingStatus = false);
     }
 
     private void WeeklyDoneButton_OnChecked(object sender, RoutedEventArgs e)
     {
+        if (_isUpdatingStatus)
+        {
+            return;
+        }
+
+        _isUpdatingStatus = true;
         UpdateWeeklyStatusFromButton(sender, WeeklyTaskStatus.Done);
+        Dispatcher.BeginInvoke(() => _isUpdatingStatus = false);
     }
 
     private void LongTermPlannedButton_OnChecked(object sender, RoutedEventArgs e)
     {
+        if (_isUpdatingStatus)
+        {
+            return;
+        }
+
+        _isUpdatingStatus = true;
         UpdateLongTermStatusFromButton(sender, LongTermTaskStatus.Planned);
+        Dispatcher.BeginInvoke(() => _isUpdatingStatus = false);
     }
 
     private void LongTermActiveButton_OnChecked(object sender, RoutedEventArgs e)
     {
-        UpdateLongTermStatusFromButton(sender, LongTermTaskStatus.Active);
-    }
+        if (_isUpdatingStatus)
+        {
+            return;
+        }
 
-    private void LongTermPausedButton_OnChecked(object sender, RoutedEventArgs e)
-    {
-        UpdateLongTermStatusFromButton(sender, LongTermTaskStatus.Paused);
+        _isUpdatingStatus = true;
+        UpdateLongTermStatusFromButton(sender, LongTermTaskStatus.Active);
+        Dispatcher.BeginInvoke(() => _isUpdatingStatus = false);
     }
 
     private void LongTermCompletedButton_OnChecked(object sender, RoutedEventArgs e)
     {
+        if (_isUpdatingStatus)
+        {
+            return;
+        }
+
+        _isUpdatingStatus = true;
         UpdateLongTermStatusFromButton(sender, LongTermTaskStatus.Completed);
+        Dispatcher.BeginInvoke(() => _isUpdatingStatus = false);
     }
 
     private void CancelEditorButton_OnClick(object sender, RoutedEventArgs e)
@@ -225,87 +352,298 @@ public partial class MainWindow : Window
         }
     }
 
+    private void SaveAnnotationButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        _viewModel.SaveAnnotation();
+    }
+
+    private void CancelAnnotationEditButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        _viewModel.CancelAnnotationEdit();
+    }
+
+    private void EditAnnotationButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (TryGetTag(sender, out var annotationId))
+        {
+            _viewModel.StartEditAnnotation(annotationId);
+        }
+    }
+
+    private void RequestDeleteAnnotationButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (TryGetTag(sender, out var annotationId))
+        {
+            _viewModel.RequestDeleteAnnotation(annotationId);
+        }
+    }
+
+    private void ConfirmDeleteAnnotationButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (TryGetTag(sender, out var annotationId))
+        {
+            _viewModel.ConfirmDeleteAnnotation(annotationId);
+        }
+    }
+
+    private void CancelDeleteAnnotationButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        _viewModel.CancelDeleteAnnotation();
+    }
+
+    private void SaveProjectCatalogButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        _viewModel.SaveProjectInSettings();
+    }
+
+    private void EditProjectCatalogButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (TryGetTag(sender, out var projectId))
+        {
+            _viewModel.StartEditProjectInSettings(projectId);
+        }
+    }
+
+    private void CancelProjectCatalogEditButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        _viewModel.StartCreateProjectInSettings();
+    }
+
+    private void DeleteProjectCatalogButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (TryGetTag(sender, out var projectId))
+        {
+            _viewModel.DeleteProjectInSettings(projectId);
+        }
+    }
+
+    private void CollapsedSliverShell_OnMouseEnter(object sender, MouseEventArgs e)
+    {
+        CancelHoverLeaveCountdown();
+        SetPanelState(PanelDisplayState.HoverHandle);
+    }
+
+    private void HoverHandleShell_OnMouseEnter(object sender, MouseEventArgs e)
+    {
+        CancelHoverLeaveCountdown();
+    }
+
+    private void HoverHandleShell_OnMouseLeave(object sender, MouseEventArgs e)
+    {
+        if (!_isDraggingHandle)
+        {
+            StartHoverLeaveCountdown();
+        }
+    }
+
+    private void HoverHandleShell_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (_panelState != PanelDisplayState.HoverHandle ||
+            !TryGetCursorPosition(out var cursor))
+        {
+            return;
+        }
+
+        CancelHoverLeaveCountdown();
+        _isDraggingHandle = true;
+        _dragMoved = false;
+        _dragStartTop = _collapsedButtonTop;
+        _dragStartScreenY = cursor.Y;
+        HoverHandleShell.CaptureMouse();
+        e.Handled = true;
+    }
+
+    private void HoverHandleShell_OnMouseMove(object sender, MouseEventArgs e)
+    {
+        if (!_isDraggingHandle ||
+            e.LeftButton != MouseButtonState.Pressed ||
+            !TryGetCursorPosition(out var cursor))
+        {
+            return;
+        }
+
+        var delta = cursor.Y - _dragStartScreenY;
+        if (!_dragMoved && !PanelLayout.IsDragDelta(delta))
+        {
+            return;
+        }
+
+        _dragMoved = true;
+        _collapsedButtonTop = PanelLayout.CoerceHandleTop(
+            SystemParameters.WorkArea,
+            _dragStartTop + delta);
+        ApplyWindowState(animated: false, animationMilliseconds: 0);
+    }
+
+    private void HoverHandleShell_OnMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        if (!_isDraggingHandle)
+        {
+            return;
+        }
+
+        var wasDrag = _dragMoved;
+        _isDraggingHandle = false;
+        HoverHandleShell.ReleaseMouseCapture();
+
+        if (wasDrag)
+        {
+            _viewModel.UpdateCollapsedButtonTop(_collapsedButtonTop);
+            if (!HoverHandleShell.IsMouseOver)
+            {
+                StartHoverLeaveCountdown();
+            }
+        }
+        else
+        {
+            ExpandPanel();
+        }
+
+        e.Handled = true;
+    }
+
+    private void HoverHandleShell_OnLostMouseCapture(object sender, MouseEventArgs e)
+    {
+        if (!_isDraggingHandle)
+        {
+            return;
+        }
+
+        _isDraggingHandle = false;
+        if (_dragMoved)
+        {
+            _viewModel.UpdateCollapsedButtonTop(_collapsedButtonTop);
+        }
+
+        if (_panelState == PanelDisplayState.HoverHandle && !HoverHandleShell.IsMouseOver)
+        {
+            StartHoverLeaveCountdown();
+        }
+    }
+
+    private string FindProjectName(string projectId)
+    {
+        var section = _viewModel.WeeklySections.Concat(_viewModel.LongTermSections)
+            .FirstOrDefault(item => item.ProjectId == projectId);
+        return section?.ProjectName ?? string.Empty;
+    }
+
     private void ConfigureWindow()
     {
         Topmost = true;
-        ApplyWindowState(animated: false);
+        ApplyWindowState(animated: false, animationMilliseconds: 0);
     }
 
     private void ExpandPanel(bool animated = true)
     {
-        if (_isExpanded)
-        {
-            CancelPendingHide();
-            return;
-        }
-
-        _isExpanded = true;
-        CancelPendingHide();
-        ApplyWindowState(animated);
+        CancelHoverLeaveCountdown();
+        SetPanelState(PanelDisplayState.ExpandedPanel, animated);
     }
 
     private void CollapsePanel(bool animated = true)
     {
-        if (!_isExpanded || _viewModel.IsEditorOpen)
+        if (_panelState != PanelDisplayState.ExpandedPanel || _viewModel.IsEditorOpen)
         {
             return;
         }
 
-        _isExpanded = false;
-        CancelPendingHide();
-        ApplyWindowState(animated);
+        SetPanelState(PanelDisplayState.CollapsedSliver, animated);
     }
 
-    private void ApplyWindowState(bool animated)
+    private void SetPanelState(PanelDisplayState targetState, bool animated = true)
     {
-        var bounds = _isExpanded ? GetExpandedBounds() : GetCollapsedBounds();
-        var targetOpacity = _isExpanded ? 1.0 : 0.94;
-
-        if (_isExpanded)
+        var previousState = _panelState;
+        if (previousState == targetState)
         {
-            ExpandedPanelShell.Visibility = Visibility.Visible;
-            CollapsedSensorShell.Visibility = Visibility.Collapsed;
+            if (!animated)
+            {
+                ApplyWindowState(animated: false, animationMilliseconds: 0);
+            }
+
+            return;
         }
+
+        _panelState = targetState;
+        var animationMilliseconds =
+            previousState == PanelDisplayState.ExpandedPanel ||
+            targetState == PanelDisplayState.ExpandedPanel
+                ? PanelAnimationMilliseconds
+                : HoverAnimationMilliseconds;
+        ApplyWindowState(animated, animationMilliseconds);
+    }
+
+    private void StartHoverLeaveCountdown()
+    {
+        if (_panelState != PanelDisplayState.HoverHandle || _isDraggingHandle)
+        {
+            return;
+        }
+
+        _hoverLeaveTimer.Stop();
+        _hoverLeaveTimer.Start();
+    }
+
+    private void CancelHoverLeaveCountdown()
+    {
+        _hoverLeaveTimer.Stop();
+    }
+
+    private void HoverLeaveTimer_OnTick(object? sender, EventArgs e)
+    {
+        CancelHoverLeaveCountdown();
+        if (_panelState == PanelDisplayState.HoverHandle &&
+            !_isDraggingHandle &&
+            !HoverHandleShell.IsMouseOver)
+        {
+            SetPanelState(PanelDisplayState.CollapsedSliver);
+        }
+    }
+
+    private void ApplyWindowState(bool animated, int animationMilliseconds)
+    {
+        var targetState = _panelState;
+        var bounds = PanelLayout.GetBounds(
+            targetState,
+            SystemParameters.WorkArea,
+            _collapsedButtonTop);
+        var targetOpacity = targetState == PanelDisplayState.ExpandedPanel ? 1.0 : 0.98;
+
+        UpdateShellVisibility(targetState);
 
         if (!animated)
         {
+            _animationVersion++;
+            _isAnimating = false;
             ApplyBounds(bounds);
             Opacity = targetOpacity;
-            UpdateShellVisibility();
             return;
         }
 
         _isAnimating = true;
-        AnimateWindow(bounds, targetOpacity);
-    }
-
-    private Rect GetExpandedBounds()
-    {
-        var workArea = SystemParameters.WorkArea;
-        var width = ExpandedPanelWidth;
-        var left = workArea.Right - width - ScreenPadding;
-        return new Rect(left, workArea.Top, width, workArea.Height);
-    }
-
-    private Rect GetCollapsedBounds()
-    {
-        var workArea = SystemParameters.WorkArea;
-        var left = workArea.Right - CollapsedSensorWidth - ScreenPadding;
-        var top = workArea.Bottom - CollapsedSensorHeight - ScreenPadding;
-        return new Rect(left, top, CollapsedSensorWidth, CollapsedSensorHeight);
+        AnimateWindow(bounds, targetOpacity, animationMilliseconds, targetState);
     }
 
     private void ApplyBounds(Rect bounds)
     {
+        BeginAnimation(WidthProperty, null);
+        BeginAnimation(HeightProperty, null);
+        BeginAnimation(LeftProperty, null);
+        BeginAnimation(TopProperty, null);
+        BeginAnimation(OpacityProperty, null);
         Left = bounds.Left;
         Top = bounds.Top;
         Width = bounds.Width;
         Height = bounds.Height;
     }
 
-    private void AnimateWindow(Rect bounds, double targetOpacity)
+    private void AnimateWindow(
+        Rect bounds,
+        double targetOpacity,
+        int animationMilliseconds,
+        PanelDisplayState targetState)
     {
-        var duration = new Duration(TimeSpan.FromMilliseconds(280));
+        var version = ++_animationVersion;
+        var duration = new Duration(TimeSpan.FromMilliseconds(animationMilliseconds));
         var easing = new CubicEase { EasingMode = EasingMode.EaseOut };
 
         BeginAnimation(WidthProperty, CreateAnimation(bounds.Width, duration, easing));
@@ -316,10 +654,15 @@ public partial class MainWindow : Window
         var opacityAnimation = CreateAnimation(targetOpacity, duration, easing);
         opacityAnimation.Completed += (_, _) =>
         {
+            if (version != _animationVersion || targetState != _panelState)
+            {
+                return;
+            }
+
             _isAnimating = false;
             ApplyBounds(bounds);
             Opacity = targetOpacity;
-            UpdateShellVisibility();
+            UpdateShellVisibility(targetState);
         };
 
         BeginAnimation(OpacityProperty, opacityAnimation);
@@ -330,80 +673,22 @@ public partial class MainWindow : Window
         return new DoubleAnimation(target, duration) { EasingFunction = easing };
     }
 
-    private void UpdateShellVisibility()
+    private void UpdateShellVisibility(PanelDisplayState state)
     {
-        ExpandedPanelShell.Visibility = _isExpanded ? Visibility.Visible : Visibility.Collapsed;
-        CollapsedSensorShell.Visibility = _isExpanded ? Visibility.Collapsed : Visibility.Visible;
-    }
+        ExpandedPanelShell.Visibility = state == PanelDisplayState.ExpandedPanel
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+        CollapsedSliverShell.Visibility = state == PanelDisplayState.CollapsedSliver
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+        HoverHandleShell.Visibility = state == PanelDisplayState.HoverHandle
+            ? Visibility.Visible
+            : Visibility.Collapsed;
 
-    private void PointerTimer_OnTick(object? sender, EventArgs e)
-    {
-        if (!TryGetCursorPosition(out var cursor))
+        if (state == PanelDisplayState.ExpandedPanel)
         {
-            return;
+            ExpandedPanelShell.Margin = new Thickness(ExpandedPanelInset);
         }
-
-        var collapsedBounds = GetCollapsedBounds();
-        var revealZone = new Rect(
-            collapsedBounds.Left - 42,
-            collapsedBounds.Top - 30,
-            collapsedBounds.Width + 72,
-            collapsedBounds.Height + 60);
-
-        var activeBounds = new Rect(Left, Top, ActualWidth, ActualHeight);
-        if (revealZone.Contains(cursor))
-        {
-            ExpandPanel();
-            return;
-        }
-
-        if (_isExpanded && activeBounds.Contains(cursor))
-        {
-            CancelPendingHide();
-            return;
-        }
-
-        if (_isExpanded && !_viewModel.IsEditorOpen)
-        {
-            CollapsePanel();
-        }
-    }
-
-    private void HideTimer_OnTick(object? sender, EventArgs e)
-    {
-        CancelPendingHide();
-
-        if (_viewModel.IsEditorOpen)
-        {
-            return;
-        }
-
-        if (TryGetCursorPosition(out var cursor))
-        {
-            var windowRect = new Rect(Left, Top, ActualWidth, ActualHeight);
-            if (windowRect.Contains(cursor))
-            {
-                return;
-            }
-        }
-
-        CollapsePanel();
-    }
-
-    private void StartHideCountdown()
-    {
-        if (_viewModel.IsEditorOpen || !_isExpanded)
-        {
-            return;
-        }
-
-        _hideTimer.Stop();
-        _hideTimer.Start();
-    }
-
-    private void CancelPendingHide()
-    {
-        _hideTimer.Stop();
     }
 
     private void UpdateWeeklyStatusFromButton(object sender, WeeklyTaskStatus status)
