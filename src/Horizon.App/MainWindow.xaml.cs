@@ -7,6 +7,11 @@ using System.Windows.Threading;
 using Horizon.App.Models;
 using Horizon.App.Services;
 using Horizon.App.ViewModels;
+using Application = System.Windows.Application;
+using KeyEventArgs = System.Windows.Input.KeyEventArgs;
+using MouseEventArgs = System.Windows.Input.MouseEventArgs;
+using Point = System.Windows.Point;
+using RadioButton = System.Windows.Controls.RadioButton;
 
 namespace Horizon.App;
 
@@ -20,6 +25,7 @@ public partial class MainWindow : Window
     private readonly MainViewModel _viewModel;
     private readonly DispatcherTimer _hoverLeaveTimer;
     private readonly DispatcherTimer _dateCheckTimer;
+    private TrayIconService? _trayIconService;
     private PanelDisplayState _panelState = PanelDisplayState.CollapsedSliver;
     private bool _isAnimating;
     private int _animationVersion;
@@ -35,7 +41,7 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
-        _viewModel = new MainViewModel(new HorizonDataStore());
+        _viewModel = new MainViewModel(new HorizonDataStore(), new WindowsStartupService());
         DataContext = _viewModel;
 
         _hoverLeaveTimer = new DispatcherTimer { Interval = HoverLeaveDelay };
@@ -52,6 +58,8 @@ public partial class MainWindow : Window
             _viewModel.GetCollapsedButtonTop());
         ConfigureWindow();
         SetPanelState(PanelDisplayState.CollapsedSliver, animated: false);
+        _viewModel.ReconcileStartupRegistration();
+        _trayIconService ??= new TrayIconService(OpenFromTray, ExitFromTray);
         _lastObservedDate = DateTime.Today;
         _dateCheckTimer.Start();
     }
@@ -60,6 +68,28 @@ public partial class MainWindow : Window
     {
         _hoverLeaveTimer.Stop();
         _dateCheckTimer.Stop();
+        _trayIconService?.Dispose();
+        _trayIconService = null;
+    }
+
+    private void OpenFromTray()
+    {
+        Dispatcher.BeginInvoke(new Action(() =>
+        {
+            if (!IsVisible)
+            {
+                Show();
+            }
+
+            SetPanelState(PanelDisplayState.ExpandedPanel);
+            Activate();
+            Focus();
+        }));
+    }
+
+    private void ExitFromTray()
+    {
+        Dispatcher.BeginInvoke(new Action(() => Application.Current.Shutdown()));
     }
 
     private void DateCheckTimer_OnTick(object? sender, EventArgs e)
@@ -144,6 +174,11 @@ public partial class MainWindow : Window
     private void PinButton_OnClick(object sender, RoutedEventArgs e)
     {
         _viewModel.TogglePinned();
+    }
+
+    private void StartWithWindowsButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        _viewModel.ToggleStartWithWindows();
     }
 
     private void ArchiveToggleButton_OnClick(object sender, RoutedEventArgs e)

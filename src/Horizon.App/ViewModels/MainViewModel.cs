@@ -6,6 +6,7 @@ namespace Horizon.App.ViewModels;
 public sealed class MainViewModel : ObservableObject
 {
     private readonly HorizonDataStore _store;
+    private readonly IStartupRegistrationService _startupRegistrationService;
     private HorizonDataFile _data = new();
     private string _statusMessage = string.Empty;
     private string _editorValidationMessage = string.Empty;
@@ -24,9 +25,12 @@ public sealed class MainViewModel : ObservableObject
     private IReadOnlyList<ProjectCatalogRowViewModel> _projectCatalogRows = [];
     private IReadOnlyList<string> _projectNameOptions = [];
 
-    public MainViewModel(HorizonDataStore store)
+    public MainViewModel(
+        HorizonDataStore store,
+        IStartupRegistrationService startupRegistrationService)
     {
         _store = store;
+        _startupRegistrationService = startupRegistrationService;
         Load();
     }
 
@@ -154,6 +158,8 @@ public sealed class MainViewModel : ObservableObject
     public string HistoryToggleText => ContentMode == MainContentMode.History ? "返回主页" : "历史";
     public bool IsPinned => _data.Settings.IsPinned;
     public string PinButtonText => IsPinned ? "已置顶" : "置顶";
+    public bool StartWithWindows => _data.Settings.StartWithWindows;
+    public string StartWithWindowsText => StartWithWindows ? "已开启" : "已关闭";
 
     public string StatusMessage
     {
@@ -310,6 +316,34 @@ public sealed class MainViewModel : ObservableObject
         OnPropertyChanged(nameof(IsPinned));
         OnPropertyChanged(nameof(PinButtonText));
         StatusMessage = IsPinned ? "主面板已置顶。" : "已恢复点击外部自动收起。";
+    }
+
+    public bool ReconcileStartupRegistration()
+    {
+        if (_startupRegistrationService.TrySetEnabled(StartWithWindows, out var errorMessage))
+        {
+            return true;
+        }
+
+        StatusMessage = errorMessage ?? "无法同步开机启动设置。";
+        return false;
+    }
+
+    public bool ToggleStartWithWindows()
+    {
+        var requestedValue = !StartWithWindows;
+        if (!_startupRegistrationService.TrySetEnabled(requestedValue, out var errorMessage))
+        {
+            StatusMessage = errorMessage ?? "无法更新开机启动设置。";
+            return false;
+        }
+
+        _data.Settings.StartWithWindows = requestedValue;
+        _store.Save(_data);
+        OnPropertyChanged(nameof(StartWithWindows));
+        OnPropertyChanged(nameof(StartWithWindowsText));
+        StatusMessage = StartWithWindows ? "已开启开机自动启动。" : "已关闭开机自动启动。";
+        return true;
     }
 
     public void OpenCreateWeeklyTask()

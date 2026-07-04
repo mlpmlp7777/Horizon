@@ -1,9 +1,44 @@
 using System.Windows;
+using System.Text.Json;
+using System.IO;
 using Horizon.App;
 using Horizon.App.Models;
 using Horizon.App.Services;
 
 var area = new Rect(100, 50, 1200, 800);
+
+var legacySettings = JsonSerializer.Deserialize<HorizonSettings>("{}", JsonOptions.Default);
+AssertEqual(true, legacySettings?.StartWithWindows ?? false, "legacy settings enable autostart by default");
+AssertEqual(
+    "\"C:\\Program Files\\Horizon\\Horizon.App.exe\"",
+    WindowsStartupService.BuildCommand(@"C:\Program Files\Horizon\Horizon.App.exe"),
+    "startup command quotes executable path");
+
+var viewModelTestRoot = Path.Combine(Path.GetTempPath(), $"Horizon.Tests.{Guid.NewGuid():N}");
+try
+{
+    var fakeStartupService = new FakeStartupRegistrationService();
+    var viewModelStore = new HorizonDataStore(viewModelTestRoot);
+    var viewModel = new Horizon.App.ViewModels.MainViewModel(viewModelStore, fakeStartupService);
+
+    AssertEqual(true, viewModel.StartWithWindows, "autostart is enabled for new data");
+    AssertEqual(true, viewModel.ReconcileStartupRegistration(), "startup registration reconciles");
+    AssertEqual(true, fakeStartupService.LastRequestedValue ?? false, "reconcile uses saved preference");
+    AssertEqual(true, viewModel.ToggleStartWithWindows(), "autostart can be disabled");
+    AssertEqual(false, viewModel.StartWithWindows, "disabled preference is reflected");
+    AssertEqual(false, new HorizonDataStore(viewModelTestRoot).Load().Settings.StartWithWindows, "disabled preference is persisted");
+
+    fakeStartupService.ShouldSucceed = false;
+    AssertEqual(false, viewModel.ToggleStartWithWindows(), "failed registry update is reported");
+    AssertEqual(false, viewModel.StartWithWindows, "failed registry update preserves preference");
+}
+finally
+{
+    if (Directory.Exists(viewModelTestRoot))
+    {
+        Directory.Delete(viewModelTestRoot, recursive: true);
+    }
+}
 
 AssertRect(
     PanelLayout.GetBounds(PanelDisplayState.CollapsedSliver, area, 200),
@@ -125,5 +160,18 @@ static void AssertEqual<T>(T expected, T actual, string name)
     if (!EqualityComparer<T>.Default.Equals(expected, actual))
     {
         throw new InvalidOperationException($"{name}: expected {expected}, got {actual}");
+    }
+}
+
+sealed class FakeStartupRegistrationService : IStartupRegistrationService
+{
+    public bool ShouldSucceed { get; set; } = true;
+    public bool? LastRequestedValue { get; private set; }
+
+    public bool TrySetEnabled(bool enabled, out string? errorMessage)
+    {
+        LastRequestedValue = enabled;
+        errorMessage = ShouldSucceed ? null : "simulated failure";
+        return ShouldSucceed;
     }
 }

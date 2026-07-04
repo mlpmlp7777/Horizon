@@ -46,6 +46,7 @@ public sealed class HorizonSettings
     public List<string> LongTermProjectNames { get; set; } = [];
     public double CollapsedButtonTop { get; set; } = 160;
     public bool IsPinned { get; set; }
+    public bool StartWithWindows { get; set; } = true;
 }
 
 public sealed class ProjectItem

@@ -10,11 +10,14 @@ public sealed class HorizonDataStore
     private readonly string _dataFilePath;
 
     public HorizonDataStore()
-    {
-        var baseDirectory = Path.Combine(
+        : this(Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "Horizon");
+            "Horizon"))
+    {
+    }
 
+    internal HorizonDataStore(string baseDirectory)
+    {
         _dataDirectory = Path.Combine(baseDirectory, "data");
         _dataFilePath = Path.Combine(_dataDirectory, "horizon-data.json");
     }

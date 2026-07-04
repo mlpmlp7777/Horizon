@@ -15,7 +15,7 @@
         AllowsTransparency="True"
         Background="Transparent"
         Topmost="True"
-        ShowInTaskbar="True"
+        ShowInTaskbar="False"
         Loaded="MainWindow_OnLoaded"
         Closed="MainWindow_OnClosed"
         Deactivated="MainWindow_OnDeactivated"
@@ -626,16 +626,28 @@
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
-                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                        <TextBlock Text="Horizon"
-                                   FontSize="18"
-                                   FontWeight="SemiBold"
-                                   Foreground="#0F2438" />
-                        <TextBlock Margin="0,3,0,0"
-                                   Text="{Binding HeaderSubtitle}"
-                                   FontSize="10"
-                                   Foreground="#708092" />
-                    </StackPanel>
+                    <Grid Grid.Column="0" Margin="0,0,10,0" VerticalAlignment="Center">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Image Width="28"
+                               Height="28"
+                               Margin="0,0,9,0"
+                               VerticalAlignment="Center"
+                               Source="/Horizon.App;component/Assets/horizon-logo.png"
+                               Stretch="Uniform" />
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="Horizon"
+                                       FontSize="18"
+                                       FontWeight="SemiBold"
+                                       Foreground="#0F2438" />
+                            <TextBlock Margin="0,3,0,0"
+                                       Text="{Binding HeaderSubtitle}"
+                                       FontSize="10"
+                                       Foreground="#708092" />
+                        </StackPanel>
+                    </Grid>
 
                     <ToggleButton Grid.Column="1"
                                   VerticalAlignment="Center"
@@ -1007,8 +1019,41 @@
                         <Border Padding="12"
                                 Margin="0,0,0,10"
                                 Style="{StaticResource PanelCardStyle}"
-                                Visibility="{Binding IsSettingsOpen, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                 Visibility="{Binding IsSettingsOpen, Converter={StaticResource BooleanToVisibilityConverter}}">
                             <StackPanel>
+                                <TextBlock Text="系统"
+                                           FontWeight="SemiBold"
+                                           Foreground="#17324A" />
+                                <Border Padding="10"
+                                        Margin="0,8,0,14"
+                                        Background="#F7F9FC"
+                                        BorderBrush="#E1E6ED"
+                                        BorderThickness="1"
+                                        CornerRadius="14">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                                            <TextBlock Text="开机自动启动"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="#17324A" />
+                                            <TextBlock Margin="0,4,0,0"
+                                                       Text="登录 Windows 后自动启动，并保持右侧触发条状态。"
+                                                       FontSize="10"
+                                                       Foreground="#6B7B8C"
+                                                       TextWrapping="Wrap" />
+                                        </StackPanel>
+                                        <ToggleButton Grid.Column="1"
+                                                      VerticalAlignment="Center"
+                                                      Style="{StaticResource PinToggleButtonStyle}"
+                                                      Content="{Binding StartWithWindowsText}"
+                                                      IsChecked="{Binding StartWithWindows, Mode=OneWay}"
+                                                      Click="StartWithWindowsButton_OnClick" />
+                                    </Grid>
+                                </Border>
+
                                 <TextBlock Text="项目列表" />
                                 <TextBlock Margin="0,6,0,10"
                                            Text="新增和修改后，项目会立即出现在新建任务的下拉框中。下拉框仍支持手动输入。"
