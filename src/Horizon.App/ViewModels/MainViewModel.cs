@@ -985,9 +985,24 @@ public sealed class MainViewModel : ObservableObject
             .Where(task => WeeklyRolloverService.IsWeeklyInCurrentView(task, localToday))
             .ToLookup(task => task.ProjectId);
 
+        var hasSearchText = !string.IsNullOrWhiteSpace(SearchText);
+        var projectNameMatches = hasSearchText
+            ? visibleProjects.Values
+                .Where(project => project.Name.Contains(
+                    SearchText,
+                    StringComparison.CurrentCultureIgnoreCase))
+                .Select(project => project.Id)
+                .ToHashSet(StringComparer.Ordinal)
+            : [];
+
         var weeklyProjectIds = ShowArchivedTasks
             ? currentWeeklyTasks.Select(group => group.Key)
-            : visibleProjects.Keys;
+            : hasSearchText
+                ? currentWeeklyTasks
+                    .Select(group => group.Key)
+                    .Concat(projectNameMatches)
+                    .Distinct(StringComparer.Ordinal)
+                : visibleProjects.Keys;
 
         WeeklySections = weeklyProjectIds
             .Select(projectId => BuildWeeklySection(
@@ -1004,7 +1019,12 @@ public sealed class MainViewModel : ObservableObject
 
         var longTermProjectIds = ShowArchivedTasks
             ? currentLongTermTasks.Select(group => group.Key)
-            : visibleProjects.Keys;
+            : hasSearchText
+                ? currentLongTermTasks
+                    .Select(group => group.Key)
+                    .Concat(projectNameMatches)
+                    .Distinct(StringComparer.Ordinal)
+                : visibleProjects.Keys;
 
         LongTermSections = longTermProjectIds
             .Select(projectId => BuildLongTermSection(

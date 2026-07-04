@@ -217,6 +217,15 @@ try
                 Progress = 100,
                 WeekStartDate = historyWeekStart,
                 CompletedAt = historyCompletedAt
+            },
+            new WeeklyTaskItem
+            {
+                ProjectId = project.Id,
+                Title = "归档周任务",
+                Status = WeeklyTaskStatus.Todo,
+                Progress = 10,
+                WeekStartDate = expansionCurrentWeekStart,
+                Archived = true
             }
         ],
         LongTermTasks =
@@ -239,14 +248,33 @@ try
                 StartDate = historyWeekStart.AddMonths(-1),
                 EndDate = historyWeekStart,
                 CompletedAt = historyCompletedAt
+            },
+            new LongTermTaskItem
+            {
+                ProjectId = project.Id,
+                Title = "归档长期任务",
+                Status = LongTermTaskStatus.Planned,
+                Progress = 10,
+                StartDate = DateTime.Today,
+                EndDate = DateTime.Today.AddMonths(1),
+                Archived = true
             }
         ]
     };
+    ProjectExpansionRules.SetExpanded(
+        data.Settings,
+        ProjectSectionKind.Weekly,
+        "unknown-project",
+        true);
     store.Save(data);
 
     var viewModel = new Horizon.App.ViewModels.MainViewModel(
         store,
         new FakeStartupRegistrationService());
+
+    var afterLoad = store.Load();
+    AssertEqual(0, afterLoad.Settings.ProjectExpansionStates.Count,
+        "load prunes and persists unknown project expansion state");
 
     var weeklySection = viewModel.WeeklySections.Single(section => section.ProjectId == project.Id);
     var emptyWeeklySection = viewModel.WeeklySections.Single(section => section.ProjectId == emptyProject.Id);
@@ -265,6 +293,51 @@ try
         "empty weekly project remains visible with a zero summary");
     AssertEqual("0 项任务 · 已完成 0 项 · 0%", emptyLongTermSection.ProjectMeta,
         "empty long-term project remains visible with a zero summary");
+
+    viewModel.SearchText = "折叠";
+    AssertEqual(project.Id, viewModel.WeeklySections.Single().ProjectId,
+        "weekly task search only keeps its matching project");
+    AssertEqual(0, viewModel.LongTermSections.Count,
+        "weekly-only task search does not create empty long-term project cards");
+
+    viewModel.SearchText = "发布";
+    AssertEqual(0, viewModel.WeeklySections.Count,
+        "long-term-only task search does not create empty weekly project cards");
+    AssertEqual(project.Id, viewModel.LongTermSections.Single().ProjectId,
+        "long-term task search only keeps its matching project");
+
+    viewModel.SearchText = emptyProject.Name;
+    AssertEqual(emptyProject.Id, viewModel.WeeklySections.Single().ProjectId,
+        "project-name search keeps a matching weekly project with no tasks");
+    AssertEqual(0, viewModel.WeeklySections.Single().TaskCount,
+        "project-name search keeps a zero-task weekly summary");
+    AssertEqual(emptyProject.Id, viewModel.LongTermSections.Single().ProjectId,
+        "project-name search keeps a matching long-term project with no tasks");
+    AssertEqual(0, viewModel.LongTermSections.Single().TaskCount,
+        "project-name search keeps a zero-task long-term summary");
+
+    viewModel.SearchText = "无匹配内容";
+    AssertEqual(0, viewModel.WeeklySections.Count, "unmatched search hides all weekly projects");
+    AssertEqual(0, viewModel.LongTermSections.Count, "unmatched search hides all long-term projects");
+    AssertEqual(true, viewModel.ShowWeeklyEmptyState, "unmatched weekly search shows empty state");
+    AssertEqual(true, viewModel.ShowLongTermEmptyState, "unmatched long-term search shows empty state");
+
+    viewModel.SearchText = string.Empty;
+    AssertEqual(2, viewModel.WeeklySections.Count, "clearing search restores all weekly projects");
+    AssertEqual(2, viewModel.LongTermSections.Count, "clearing search restores all long-term projects");
+
+    viewModel.ToggleArchivedTasks();
+    AssertEqual(project.Id, viewModel.WeeklySections.Single().ProjectId,
+        "archive view only shows projects with archived weekly tasks");
+    AssertEqual(project.Id, viewModel.LongTermSections.Single().ProjectId,
+        "archive view only shows projects with archived long-term tasks");
+    AssertEqual(false,
+        viewModel.WeeklySections.Any(section => section.ProjectId == emptyProject.Id),
+        "archive view does not generate empty weekly project cards");
+    AssertEqual(false,
+        viewModel.LongTermSections.Any(section => section.ProjectId == emptyProject.Id),
+        "archive view does not generate empty long-term project cards");
+    viewModel.ToggleArchivedTasks();
 
     AssertEqual(true,
         viewModel.ToggleProjectExpansion(project.Id, ProjectSectionKind.Weekly),
