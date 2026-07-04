@@ -26,8 +26,12 @@
         <SolidColorBrush x:Key="OrbitPanelBrush" Color="#F7F9FD" />
         <SolidColorBrush x:Key="OrbitHeaderBrush" Color="#DCE9FF" />
         <SolidColorBrush x:Key="OrbitPrimaryBrush" Color="#2D68FF" />
+        <SolidColorBrush x:Key="OrbitAccentInkBrush" Color="#2458D4" />
         <SolidColorBrush x:Key="OrbitInkBrush" Color="#14213D" />
-        <SolidColorBrush x:Key="OrbitMutedBrush" Color="#697B9B" />
+        <SolidColorBrush x:Key="OrbitMutedBrush" Color="#526686" />
+        <SolidColorBrush x:Key="OrbitSelectedBrush" Color="#DCE7FF" />
+        <SolidColorBrush x:Key="OrbitMotifBrush" Color="#B8CEFF" />
+        <SolidColorBrush x:Key="OrbitShellBorderBrush" Color="#B8C8E1" />
         <SolidColorBrush x:Key="OrbitCollapsedCardBrush" Color="#EAF0F9" />
         <SolidColorBrush x:Key="OrbitExpandedCardBrush" Color="#FFFFFF" />
         <SolidColorBrush x:Key="OrbitExpandedBorderBrush" Color="#9DB9FF" />
@@ -61,17 +65,31 @@
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="12">
+                                CornerRadius="12"
+                                RenderTransformOrigin="0.5,0.5">
+                            <Border.RenderTransform>
+                                <ScaleTransform ScaleX="1" ScaleY="1" />
+                            </Border.RenderTransform>
                             <ContentPresenter Margin="{TemplateBinding Padding}"
                                               HorizontalAlignment="Center"
                                               VerticalAlignment="Center" />
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="ButtonChrome" Property="Opacity" Value="0.92" />
+                                <Setter TargetName="ButtonChrome" Property="RenderTransform">
+                                    <Setter.Value>
+                                        <ScaleTransform ScaleX="1.01" ScaleY="1.01" />
+                                    </Setter.Value>
+                                </Setter>
+                                <Setter TargetName="ButtonChrome" Property="BorderBrush" Value="{StaticResource OrbitShellBorderBrush}" />
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="ButtonChrome" Property="Opacity" Value="0.8" />
+                                <Setter TargetName="ButtonChrome" Property="RenderTransform">
+                                    <Setter.Value>
+                                        <ScaleTransform ScaleX="0.98" ScaleY="0.98" />
+                                    </Setter.Value>
+                                </Setter>
+                                <Setter TargetName="ButtonChrome" Property="BorderBrush" Value="{StaticResource OrbitAccentInkBrush}" />
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter TargetName="ButtonChrome" Property="Opacity" Value="0.4" />
@@ -109,13 +127,13 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsChecked" Value="True">
-                                <Setter Property="Background" Value="#DCE7FF" />
+                                <Setter Property="Background" Value="{StaticResource OrbitSelectedBrush}" />
                                 <Setter Property="BorderBrush" Value="{StaticResource OrbitExpandedBorderBrush}" />
-                                <Setter Property="Foreground" Value="#2458D4" />
+                                <Setter Property="Foreground" Value="{StaticResource OrbitAccentInkBrush}" />
                                 <Setter Property="FontWeight" Value="SemiBold" />
                             </Trigger>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="ToggleChrome" Property="Opacity" Value="0.92" />
+                                <Setter TargetName="ToggleChrome" Property="BorderBrush" Value="{StaticResource OrbitShellBorderBrush}" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -160,7 +178,7 @@
                                 <Setter TargetName="HistoryCardChrome" Property="BorderBrush" Value="{StaticResource OrbitExpandedBorderBrush}" />
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="HistoryCardChrome" Property="Opacity" Value="0.82" />
+                                <Setter TargetName="HistoryCardChrome" Property="BorderBrush" Value="{StaticResource OrbitAccentInkBrush}" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -201,7 +219,7 @@
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsChecked" Value="True">
                                 <Setter TargetName="Chip" Property="Background" Value="{StaticResource OrbitExpandedCardBrush}" />
-                                <Setter Property="Foreground" Value="#2458D4" />
+                                <Setter Property="Foreground" Value="{StaticResource OrbitAccentInkBrush}" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -343,11 +361,11 @@
 
                     <Border Grid.Column="2" Padding="7,4" CornerRadius="10"
                             VerticalAlignment="Center"
-                            Background="#DCE7FF">
+                            Background="{StaticResource OrbitSelectedBrush}">
                         <TextBlock Text="{Binding StatusText}"
                                    FontSize="9"
                                    FontWeight="SemiBold"
-                                   Foreground="#2458D4" />
+                                   Foreground="{StaticResource OrbitAccentInkBrush}" />
                     </Border>
                 </Grid>
 
@@ -712,7 +730,7 @@
         <Border x:Name="ExpandedPanelShell"
                 Margin="6"
                 Background="{StaticResource OrbitPanelBrush}"
-                BorderBrush="#B8C8E1"
+                BorderBrush="{StaticResource OrbitShellBorderBrush}"
                 BorderThickness="1"
                 CornerRadius="30"
                 ClipToBounds="True">
@@ -737,7 +755,7 @@
                          Margin="0,-68,-52,0"
                          HorizontalAlignment="Right"
                          VerticalAlignment="Top"
-                         Stroke="#B8CEFF"
+                         Stroke="{StaticResource OrbitMotifBrush}"
                          StrokeThickness="22"
                          Opacity="0.75"
                          IsHitTestVisible="False" />
@@ -1002,7 +1020,7 @@
                 Width="30"
                 Height="92"
                 Background="{StaticResource OrbitPrimaryBrush}"
-                BorderBrush="#2458D4"
+                BorderBrush="{StaticResource OrbitAccentInkBrush}"
                 BorderThickness="1"
                 CornerRadius="14,0,0,14"
                 HorizontalAlignment="Right"
@@ -1026,7 +1044,7 @@
                         Height="3"
                         CornerRadius="2"
                         HorizontalAlignment="Center"
-                        Background="#B8CEFF" />
+                        Background="{StaticResource OrbitMotifBrush}" />
 
                 <TextBlock Grid.Row="1"
                            Text="H"
