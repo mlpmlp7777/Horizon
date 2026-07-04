@@ -245,7 +245,10 @@ public sealed class MainViewModel : ObservableObject
         _data = _store.Load();
 
         var reconciled = WeeklyRolloverService.Reconcile(_data, DateTime.Today, DateTime.UtcNow);
-        if (reconciled | AutoUpdateProjectStatus())
+        var prunedExpansionStates = ProjectExpansionRules.PruneUnknownProjects(
+            _data.Settings,
+            _data.Projects.Select(project => project.Id));
+        if (reconciled | AutoUpdateProjectStatus() | prunedExpansionStates)
         {
             _store.Save(_data);
         }
@@ -316,6 +319,27 @@ public sealed class MainViewModel : ObservableObject
         OnPropertyChanged(nameof(IsPinned));
         OnPropertyChanged(nameof(PinButtonText));
         StatusMessage = IsPinned ? "主面板已置顶。" : "已恢复点击外部自动收起。";
+    }
+
+    public bool ToggleProjectExpansion(string projectId, ProjectSectionKind sectionKind)
+    {
+        if (!_data.Projects.Any(project => project.Id == projectId))
+        {
+            return false;
+        }
+
+        var isExpanded = ProjectExpansionRules.Toggle(_data.Settings, sectionKind, projectId);
+        try
+        {
+            _store.Save(_data);
+        }
+        catch
+        {
+            StatusMessage = "展开状态已更新，但暂时无法保存。";
+        }
+
+        RefreshSections();
+        return isExpanded;
     }
 
     public bool ReconcileStartupRegistration()
@@ -519,6 +543,7 @@ public sealed class MainViewModel : ObservableObject
         var weeklyCount = _data.WeeklyTasks.RemoveAll(item => item.ProjectId == projectId);
         var longTermCount = _data.LongTermTasks.RemoveAll(item => item.ProjectId == projectId);
         _data.Projects.Remove(project);
+        ProjectExpansionRules.RemoveProject(_data.Settings, project.Id);
 
         if (SettingsForm.EditingProjectId == projectId)
         {
@@ -955,20 +980,36 @@ public sealed class MainViewModel : ObservableObject
             .Where(LongTermTaskMatches)
             .ToList();
 
-        WeeklySections = activeWeeklyTasks
+        var currentWeeklyTasks = activeWeeklyTasks
             .Where(task => task.WeekStartDate.Date == currentWeekStart.Date)
             .Where(task => WeeklyRolloverService.IsWeeklyInCurrentView(task, localToday))
-            .GroupBy(task => task.ProjectId)
-            .Select(group => BuildWeeklySection(visibleProjects[group.Key], group))
+            .ToLookup(task => task.ProjectId);
+
+        var weeklyProjectIds = ShowArchivedTasks
+            ? currentWeeklyTasks.Select(group => group.Key)
+            : visibleProjects.Keys;
+
+        WeeklySections = weeklyProjectIds
+            .Select(projectId => BuildWeeklySection(
+                visibleProjects[projectId],
+                currentWeeklyTasks[projectId]))
             .OrderBy(section => section.ProjectName, StringComparer.CurrentCultureIgnoreCase)
             .ToList();
 
         WeeklyHistoryGroups = [];
 
-        LongTermSections = activeLongTermTasks
+        var currentLongTermTasks = activeLongTermTasks
             .Where(task => WeeklyRolloverService.IsLongTermInCurrentView(task, localToday))
-            .GroupBy(task => task.ProjectId)
-            .Select(group => BuildLongTermSection(visibleProjects[group.Key], group))
+            .ToLookup(task => task.ProjectId);
+
+        var longTermProjectIds = ShowArchivedTasks
+            ? currentLongTermTasks.Select(group => group.Key)
+            : visibleProjects.Keys;
+
+        LongTermSections = longTermProjectIds
+            .Select(projectId => BuildLongTermSection(
+                visibleProjects[projectId],
+                currentLongTermTasks[projectId]))
             .OrderBy(section => section.ProjectName, StringComparer.CurrentCultureIgnoreCase)
             .ToList();
 
@@ -1097,17 +1138,26 @@ public sealed class MainViewModel : ObservableObject
             .ToList();
 
         var sectionProgress = rows.Count == 0 ? 0 : (int)Math.Round(rows.Average(row => row.Progress));
+        var completedTaskCount = rows.Count(row => row.Status == WeeklyTaskStatus.Done);
 
         return new ProjectSectionViewModel
         {
             ProjectId = project.Id,
             ProjectName = project.Name,
-            ProjectMeta = $"{rows.Count} 项本周任务",
+            SectionKind = ProjectSectionKind.Weekly,
+            ProjectMeta = $"{rows.Count} 项任务 · 已完成 {completedTaskCount} 项 · {sectionProgress}%",
             StatusText = GetProjectStatusText(project.Status),
             StatusBadgeBackground = projectTone.Background,
             StatusBadgeForeground = projectTone.Foreground,
             AccentBrush = projectTone.Accent,
             Progress = sectionProgress,
+            TaskCount = rows.Count,
+            CompletedTaskCount = completedTaskCount,
+            IsExpanded = !showAddTaskAction || ProjectExpansionRules.IsExpanded(
+                _data.Settings,
+                ProjectSectionKind.Weekly,
+                project.Id),
+            IsCollapsible = showAddTaskAction,
             WeeklyTasks = rows,
             ShowAddTaskAction = showAddTaskAction
         };
@@ -1149,17 +1199,26 @@ public sealed class MainViewModel : ObservableObject
             .ToList();
 
         var sectionProgress = rows.Count == 0 ? 0 : (int)Math.Round(rows.Average(row => row.Progress));
+        var completedTaskCount = rows.Count(row => row.Status == LongTermTaskStatus.Completed);
 
         return new ProjectSectionViewModel
         {
             ProjectId = project.Id,
             ProjectName = project.Name,
-            ProjectMeta = $"{rows.Count} 项长期任务",
+            SectionKind = ProjectSectionKind.LongTerm,
+            ProjectMeta = $"{rows.Count} 项任务 · 已完成 {completedTaskCount} 项 · {sectionProgress}%",
             StatusText = GetProjectStatusText(project.Status),
             StatusBadgeBackground = projectTone.Background,
             StatusBadgeForeground = projectTone.Foreground,
             AccentBrush = projectTone.Accent,
             Progress = sectionProgress,
+            TaskCount = rows.Count,
+            CompletedTaskCount = completedTaskCount,
+            IsExpanded = !showAddTaskAction || ProjectExpansionRules.IsExpanded(
+                _data.Settings,
+                ProjectSectionKind.LongTerm,
+                project.Id),
+            IsCollapsible = showAddTaskAction,
             LongTermTasks = rows,
             ShowAddTaskAction = showAddTaskAction
         };

@@ -183,6 +183,146 @@ finally
     }
 }
 
+var expansionViewModelRoot = Path.Combine(
+    Path.GetTempPath(),
+    $"Horizon.Expansion.Tests.{Guid.NewGuid():N}");
+try
+{
+    var store = new HorizonDataStore(expansionViewModelRoot);
+    var project = new ProjectItem { Id = "project-a", Name = "Horizon 产品迭代" };
+    var emptyProject = new ProjectItem { Id = "project-empty", Name = "空项目" };
+    var expansionCurrentWeekStart = WeeklyRolloverService.GetStartOfWeek(DateTime.Today);
+    var historyWeekStart = expansionCurrentWeekStart.AddDays(-7);
+    var historyCompletedAt = DateTime.SpecifyKind(
+        historyWeekStart.AddDays(2).AddHours(12),
+        DateTimeKind.Local).ToUniversalTime();
+    var data = new HorizonDataFile
+    {
+        Projects = [project, emptyProject],
+        WeeklyTasks =
+        [
+            new WeeklyTaskItem
+            {
+                ProjectId = project.Id,
+                Title = "完成折叠交互",
+                Status = WeeklyTaskStatus.InProgress,
+                Progress = 40,
+                WeekStartDate = expansionCurrentWeekStart
+            },
+            new WeeklyTaskItem
+            {
+                ProjectId = project.Id,
+                Title = "历史周任务",
+                Status = WeeklyTaskStatus.Done,
+                Progress = 100,
+                WeekStartDate = historyWeekStart,
+                CompletedAt = historyCompletedAt
+            }
+        ],
+        LongTermTasks =
+        [
+            new LongTermTaskItem
+            {
+                ProjectId = project.Id,
+                Title = "发布 1.0",
+                Status = LongTermTaskStatus.Planned,
+                Progress = 20,
+                StartDate = DateTime.Today,
+                EndDate = DateTime.Today.AddMonths(2)
+            },
+            new LongTermTaskItem
+            {
+                ProjectId = project.Id,
+                Title = "历史长期任务",
+                Status = LongTermTaskStatus.Completed,
+                Progress = 100,
+                StartDate = historyWeekStart.AddMonths(-1),
+                EndDate = historyWeekStart,
+                CompletedAt = historyCompletedAt
+            }
+        ]
+    };
+    store.Save(data);
+
+    var viewModel = new Horizon.App.ViewModels.MainViewModel(
+        store,
+        new FakeStartupRegistrationService());
+
+    var weeklySection = viewModel.WeeklySections.Single(section => section.ProjectId == project.Id);
+    var emptyWeeklySection = viewModel.WeeklySections.Single(section => section.ProjectId == emptyProject.Id);
+    var longTermSection = viewModel.LongTermSections.Single(section => section.ProjectId == project.Id);
+    var emptyLongTermSection = viewModel.LongTermSections.Single(section => section.ProjectId == emptyProject.Id);
+
+    AssertEqual(false, weeklySection.IsExpanded, "new weekly section starts collapsed");
+    AssertEqual(false, longTermSection.IsExpanded, "new long-term section starts collapsed");
+    AssertEqual("1 项任务 · 已完成 0 项 · 40%", weeklySection.ProjectMeta,
+        "weekly project summary contains count, completion and progress");
+    AssertEqual(1, weeklySection.TaskCount, "weekly project summary exposes task count");
+    AssertEqual(0, weeklySection.CompletedTaskCount, "weekly project summary exposes completed count");
+    AssertEqual("1 项任务 · 已完成 0 项 · 20%", longTermSection.ProjectMeta,
+        "long-term project summary contains count, completion and progress");
+    AssertEqual("0 项任务 · 已完成 0 项 · 0%", emptyWeeklySection.ProjectMeta,
+        "empty weekly project remains visible with a zero summary");
+    AssertEqual("0 项任务 · 已完成 0 项 · 0%", emptyLongTermSection.ProjectMeta,
+        "empty long-term project remains visible with a zero summary");
+
+    AssertEqual(true,
+        viewModel.ToggleProjectExpansion(project.Id, ProjectSectionKind.Weekly),
+        "weekly project expands");
+    AssertEqual(true,
+        viewModel.WeeklySections.Single(section => section.ProjectId == project.Id).IsExpanded,
+        "expanded state reaches projected section");
+    AssertEqual("⌄",
+        viewModel.WeeklySections.Single(section => section.ProjectId == project.Id).ExpansionGlyph,
+        "expanded section exposes a downward glyph");
+    AssertEqual(false,
+        viewModel.LongTermSections.Single(section => section.ProjectId == project.Id).IsExpanded,
+        "weekly toggle does not affect long-term section");
+    AssertEqual(false,
+        viewModel.ToggleProjectExpansion("missing-project", ProjectSectionKind.Weekly),
+        "missing projects cannot create expansion state");
+
+    var reloaded = new Horizon.App.ViewModels.MainViewModel(
+        new HorizonDataStore(expansionViewModelRoot),
+        new FakeStartupRegistrationService());
+    AssertEqual(true,
+        reloaded.WeeklySections.Single(section => section.ProjectId == project.Id).IsExpanded,
+        "weekly expansion survives reload");
+    AssertEqual(false,
+        reloaded.LongTermSections.Single(section => section.ProjectId == project.Id).IsExpanded,
+        "long-term section remains independently collapsed after reload");
+
+    reloaded.OpenHistoryWeek(historyWeekStart);
+    var weeklyHistorySection = reloaded.HistoryDetailSections.Single();
+    AssertEqual(true, weeklyHistorySection.IsExpanded, "weekly history detail stays expanded");
+    AssertEqual(false, weeklyHistorySection.IsCollapsible, "weekly history detail cannot be collapsed");
+
+    reloaded.SelectLongTermHistory();
+    reloaded.OpenHistoryWeek(historyWeekStart);
+    var longTermHistorySection = reloaded.HistoryDetailSections.Single();
+    AssertEqual(true, longTermHistorySection.IsExpanded, "long-term history detail stays expanded");
+    AssertEqual(false, longTermHistorySection.IsCollapsible, "long-term history detail cannot be collapsed");
+
+    AssertEqual(true,
+        reloaded.ToggleProjectExpansion(project.Id, ProjectSectionKind.LongTerm),
+        "long-term project expands independently");
+    reloaded.DeleteProjectInSettings(project.Id);
+    var afterDelete = new HorizonDataStore(expansionViewModelRoot).Load();
+    AssertEqual(false,
+        ProjectExpansionRules.IsExpanded(afterDelete.Settings, ProjectSectionKind.Weekly, project.Id),
+        "deleting a project clears its weekly expansion state");
+    AssertEqual(false,
+        ProjectExpansionRules.IsExpanded(afterDelete.Settings, ProjectSectionKind.LongTerm, project.Id),
+        "deleting a project clears its long-term expansion state");
+}
+finally
+{
+    if (Directory.Exists(expansionViewModelRoot))
+    {
+        Directory.Delete(expansionViewModelRoot, recursive: true);
+    }
+}
+
 AssertRect(
     PanelLayout.GetBounds(PanelDisplayState.CollapsedSliver, area, 200),
     new Rect(1294, 210, 6, 72),

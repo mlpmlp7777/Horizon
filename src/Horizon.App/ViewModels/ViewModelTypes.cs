@@ -229,13 +229,19 @@ public sealed class ProjectSectionViewModel
 {
     public string ProjectId { get; init; } = string.Empty;
     public string ProjectName { get; init; } = string.Empty;
+    public ProjectSectionKind SectionKind { get; init; }
     public string ProjectMeta { get; init; } = string.Empty;
     public string StatusText { get; init; } = string.Empty;
-    public string StatusBadgeBackground { get; init; } = "#EAF3FD";
-    public string StatusBadgeForeground { get; init; } = "#1B5DAE";
-    public string AccentBrush { get; init; } = "#2A73C9";
+    public string StatusBadgeBackground { get; init; } = "#DCE7FF";
+    public string StatusBadgeForeground { get; init; } = "#2458D4";
+    public string AccentBrush { get; init; } = "#2D68FF";
     public int Progress { get; init; }
     public string ProgressText => $"{Progress}%";
+    public int TaskCount { get; init; }
+    public int CompletedTaskCount { get; init; }
+    public bool IsExpanded { get; init; }
+    public bool IsCollapsible { get; init; } = true;
+    public string ExpansionGlyph => IsExpanded ? "⌄" : "›";
     public IReadOnlyList<WeeklyTaskRowViewModel> WeeklyTasks { get; init; } = [];
     public IReadOnlyList<LongTermTaskRowViewModel> LongTermTasks { get; init; } = [];
     public bool ShowAddTaskAction { get; init; } = true;
