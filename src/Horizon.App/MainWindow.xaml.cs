@@ -228,6 +228,19 @@ public partial class MainWindow : Window
         ExpandPanel();
     }
 
+    private void ProjectSummaryButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement
+            {
+                DataContext: ProjectSectionViewModel { IsCollapsible: true } section
+            })
+        {
+            _viewModel.ToggleProjectExpansion(section.ProjectId, section.SectionKind);
+        }
+
+        e.Handled = true;
+    }
+
     private void AddWeeklyTaskForProjectButton_OnClick(object sender, RoutedEventArgs e)
     {
         if (TryGetTag(sender, out var projectId))

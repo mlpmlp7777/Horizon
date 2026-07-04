@@ -232,47 +232,101 @@
             <Setter Property="CornerRadius" Value="18" />
         </Style>
 
-        <DataTemplate x:Key="WeeklyProjectSectionTemplate" DataType="{x:Type vm:ProjectSectionViewModel}">
-            <Border Margin="0,0,0,10"
-                    Padding="12"
-                    Style="{StaticResource PanelCardStyle}">
+        <Style x:Key="ProjectCardStyle" TargetType="Border">
+            <Setter Property="Margin" Value="0,0,0,8" />
+            <Setter Property="Padding" Value="10" />
+            <Setter Property="Background" Value="#EAF0F9" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="2" />
+            <Setter Property="CornerRadius" Value="18" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsExpanded}" Value="True">
+                    <Setter Property="Background" Value="#FFFFFF" />
+                    <Setter Property="BorderBrush" Value="#9DB9FF" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="ProjectSummaryButtonStyle" TargetType="Button">
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="14">
+                            <ContentPresenter HorizontalAlignment="Stretch" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <DataTemplate x:Key="ProjectSummaryTemplate" DataType="{x:Type vm:ProjectSectionViewModel}">
+            <Button Style="{StaticResource ProjectSummaryButtonStyle}"
+                    Click="ProjectSummaryButton_OnClick">
                 <StackPanel>
                     <Grid>
                         <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
 
-                        <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                        <Border Width="22" Height="22" CornerRadius="11"
+                                VerticalAlignment="Center"
+                                Background="#D9E5FF">
+                            <TextBlock Text="{Binding ExpansionGlyph}"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       FontSize="11"
+                                       FontWeight="Bold"
+                                       Foreground="#2458D4" />
+                        </Border>
+
+                        <StackPanel Grid.Column="1" Margin="9,0,8,0">
                             <TextBlock Text="{Binding ProjectName}"
-                                       FontSize="13.5"
+                                       FontSize="12.5"
                                        FontWeight="SemiBold"
-                                       Foreground="#10263C" />
-                            <TextBlock Margin="0,4,0,0"
+                                       Foreground="#14213D"
+                                       TextTrimming="CharacterEllipsis" />
+                            <TextBlock Margin="0,3,0,0"
                                        Text="{Binding ProjectMeta}"
-                                       FontSize="10"
-                                       Foreground="#6B7B8C" />
-                            <TextBlock Margin="0,4,0,0"
-                                       Text="{Binding ProgressText, StringFormat=项目进度：{0}}"
-                                       FontSize="10"
-                                       Foreground="#6B7B8C" />
+                                       FontSize="9.5"
+                                       Foreground="#697B9B"
+                                       TextTrimming="CharacterEllipsis" />
                         </StackPanel>
 
-                        <StackPanel Grid.Column="1" HorizontalAlignment="Right">
-                            <Border Padding="8,4"
-                                    HorizontalAlignment="Right"
-                                    Background="{Binding StatusBadgeBackground}"
-                                    CornerRadius="10">
-                                <TextBlock Text="{Binding StatusText}"
-                                           FontSize="10"
-                                           FontWeight="SemiBold"
-                                           Foreground="{Binding StatusBadgeForeground}" />
-                            </Border>
-                        </StackPanel>
+                        <Border Grid.Column="2" Padding="7,4" CornerRadius="10"
+                                VerticalAlignment="Center"
+                                Background="#DCE7FF">
+                            <TextBlock Text="{Binding StatusText}"
+                                       FontSize="9"
+                                       FontWeight="SemiBold"
+                                       Foreground="#2458D4" />
+                        </Border>
                     </Grid>
 
-                    <ItemsControl Margin="0,10,0,0"
-                                  ItemsSource="{Binding WeeklyTasks}">
+                    <ProgressBar Margin="31,9,0,0"
+                                 Height="5"
+                                 Value="{Binding Progress, Mode=OneWay}"
+                                 Foreground="#2D68FF"
+                                 Background="#D4DEED" />
+                </StackPanel>
+            </Button>
+        </DataTemplate>
+
+        <DataTemplate x:Key="WeeklyProjectSectionTemplate" DataType="{x:Type vm:ProjectSectionViewModel}">
+            <Border Style="{StaticResource ProjectCardStyle}">
+                <StackPanel>
+                    <ContentControl Content="{Binding}"
+                                    ContentTemplate="{StaticResource ProjectSummaryTemplate}" />
+
+                    <StackPanel Margin="0,10,0,0"
+                                Visibility="{Binding IsExpanded, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <ItemsControl ItemsSource="{Binding WeeklyTasks}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <Border Margin="0,0,0,8"
@@ -400,7 +454,7 @@
                                 </Border>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+                        </ItemsControl>
 
                     <Button Margin="0,2,0,0"
                             HorizontalAlignment="Left"
@@ -409,54 +463,20 @@
                             Visibility="{Binding ShowAddTaskAction, Converter={StaticResource BooleanToVisibilityConverter}}"
                             Tag="{Binding ProjectId}"
                             Click="AddWeeklyTaskForProjectButton_OnClick" />
+                    </StackPanel>
                 </StackPanel>
             </Border>
         </DataTemplate>
 
         <DataTemplate x:Key="LongTermProjectSectionTemplate" DataType="{x:Type vm:ProjectSectionViewModel}">
-            <Border Margin="0,0,0,10"
-                    Padding="12"
-                    Style="{StaticResource PanelCardStyle}">
-                <Border.BorderBrush>
-                    <SolidColorBrush Color="#B7D9CF" />
-                </Border.BorderBrush>
+            <Border Style="{StaticResource ProjectCardStyle}">
                 <StackPanel>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
+                    <ContentControl Content="{Binding}"
+                                    ContentTemplate="{StaticResource ProjectSummaryTemplate}" />
 
-                        <StackPanel Grid.Column="0" Margin="0,0,10,0">
-                            <TextBlock Text="{Binding ProjectName}"
-                                       FontSize="13.5"
-                                       FontWeight="SemiBold"
-                                       Foreground="#0A2E22" />
-                            <TextBlock Margin="0,4,0,0"
-                                       Text="{Binding ProjectMeta}"
-                                       FontSize="10"
-                                       Foreground="#5A7D6F" />
-                            <TextBlock Margin="0,4,0,0"
-                                       Text="{Binding ProgressText, StringFormat=项目进度：{0}}"
-                                       FontSize="10"
-                                       Foreground="#5A7D6F" />
-                        </StackPanel>
-
-                        <StackPanel Grid.Column="1" HorizontalAlignment="Right">
-                            <Border Padding="8,4"
-                                    HorizontalAlignment="Right"
-                                    Background="{Binding StatusBadgeBackground}"
-                                    CornerRadius="10">
-                                <TextBlock Text="{Binding StatusText}"
-                                           FontSize="10"
-                                           FontWeight="SemiBold"
-                                           Foreground="{Binding StatusBadgeForeground}" />
-                            </Border>
-                        </StackPanel>
-                    </Grid>
-
-                    <ItemsControl Margin="0,10,0,0"
-                                  ItemsSource="{Binding LongTermTasks}">
+                    <StackPanel Margin="0,10,0,0"
+                                Visibility="{Binding IsExpanded, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <ItemsControl ItemsSource="{Binding LongTermTasks}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <Border Margin="0,0,0,8"
@@ -590,7 +610,7 @@
                                 </Border>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+                        </ItemsControl>
 
                     <Button Margin="0,2,0,0"
                             HorizontalAlignment="Left"
@@ -600,6 +620,7 @@
                             Foreground="#0D7D5A"
                             Tag="{Binding ProjectId}"
                             Click="AddLongTermTaskForProjectButton_OnClick" />
+                    </StackPanel>
                 </StackPanel>
             </Border>
         </DataTemplate>
