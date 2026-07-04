@@ -594,7 +594,7 @@ Add this resource after the styles:
                     <TextBlock Margin="0,3,0,0"
                                Text="{Binding ProjectMeta}"
                                FontSize="9.5"
-                               Foreground="#697B9B"
+                               Foreground="#526686"
                                TextTrimming="CharacterEllipsis" />
                 </StackPanel>
 
@@ -699,7 +699,7 @@ Add these resources at the start of `Window.Resources`:
 <SolidColorBrush x:Key="OrbitHeaderBrush" Color="#DCE9FF" />
 <SolidColorBrush x:Key="OrbitPrimaryBrush" Color="#2D68FF" />
 <SolidColorBrush x:Key="OrbitInkBrush" Color="#14213D" />
-<SolidColorBrush x:Key="OrbitMutedBrush" Color="#697B9B" />
+<SolidColorBrush x:Key="OrbitMutedBrush" Color="#526686" />
 <SolidColorBrush x:Key="OrbitCollapsedCardBrush" Color="#EAF0F9" />
 <SolidColorBrush x:Key="OrbitExpandedCardBrush" Color="#FFFFFF" />
 <SolidColorBrush x:Key="OrbitExpandedBorderBrush" Color="#9DB9FF" />
