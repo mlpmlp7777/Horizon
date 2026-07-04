@@ -42,6 +42,116 @@ AssertEqual(true,
 AssertEqual(false,
     ProjectExpansionRules.IsExpanded(expansionSettings, ProjectSectionKind.LongTerm, "missing-project"),
     "pruned state is no longer visible");
+AssertEqual(true,
+    ProjectExpansionRules.IsExpanded(expansionSettings, ProjectSectionKind.Weekly, "project-a"),
+    "pruning preserves known project state");
+
+var toggleSettings = new HorizonSettings();
+AssertEqual(true,
+    ProjectExpansionRules.Toggle(toggleSettings, ProjectSectionKind.Weekly, "project-toggle"),
+    "toggle expands a collapsed project");
+AssertEqual(false,
+    ProjectExpansionRules.Toggle(toggleSettings, ProjectSectionKind.Weekly, "project-toggle"),
+    "toggle collapses an expanded project");
+
+var removalSettings = new HorizonSettings();
+ProjectExpansionRules.SetExpanded(removalSettings, ProjectSectionKind.Weekly, "project-remove", true);
+ProjectExpansionRules.SetExpanded(removalSettings, ProjectSectionKind.LongTerm, "project-remove", true);
+ProjectExpansionRules.SetExpanded(removalSettings, ProjectSectionKind.Weekly, "project-keep", true);
+AssertEqual(true,
+    ProjectExpansionRules.RemoveProject(removalSettings, "project-remove"),
+    "removing a project clears its expansion states");
+AssertEqual(false,
+    ProjectExpansionRules.IsExpanded(removalSettings, ProjectSectionKind.Weekly, "project-remove"),
+    "removed weekly state is no longer visible");
+AssertEqual(false,
+    ProjectExpansionRules.IsExpanded(removalSettings, ProjectSectionKind.LongTerm, "project-remove"),
+    "removed long-term state is no longer visible");
+AssertEqual(true,
+    ProjectExpansionRules.IsExpanded(removalSettings, ProjectSectionKind.Weekly, "project-keep"),
+    "removing a project preserves other projects");
+AssertEqual(false,
+    ProjectExpansionRules.RemoveProject(removalSettings, "project-remove"),
+    "removing missing project state reports no change");
+
+var explicitlyNullExpansionSettings = JsonSerializer.Deserialize<HorizonSettings>(
+    "{\"ProjectExpansionStates\":null}",
+    JsonOptions.Default)!;
+AssertEqual(false,
+    ProjectExpansionRules.IsExpanded(
+        explicitlyNullExpansionSettings,
+        ProjectSectionKind.Weekly,
+        "project-null"),
+    "rules treat an explicit null state dictionary as empty");
+ProjectExpansionRules.SetExpanded(
+    explicitlyNullExpansionSettings,
+    ProjectSectionKind.Weekly,
+    "project-null",
+    true);
+AssertEqual(true,
+    ProjectExpansionRules.IsExpanded(
+        explicitlyNullExpansionSettings,
+        ProjectSectionKind.Weekly,
+        "project-null"),
+    "rules initialize an explicit null state dictionary");
+
+AssertThrows<ArgumentOutOfRangeException>(
+    () => ProjectExpansionRules.IsExpanded(
+        new HorizonSettings(),
+        (ProjectSectionKind)999,
+        "project-a"),
+    "unknown project section kind is rejected");
+
+var expansionStoreRoot = Path.Combine(
+    Path.GetTempPath(),
+    $"Horizon.Expansion.Persistence.Tests.{Guid.NewGuid():N}");
+try
+{
+    var expansionStore = new HorizonDataStore(expansionStoreRoot);
+    Directory.CreateDirectory(Path.GetDirectoryName(expansionStore.DataFilePath)!);
+
+    File.WriteAllText(expansionStore.DataFilePath, "{\"Settings\":{}}");
+    var missingFieldData = expansionStore.Load();
+    AssertEqual(0,
+        missingFieldData.Settings.ProjectExpansionStates.Count,
+        "data store loads settings with a missing expansion field");
+
+    File.WriteAllText(
+        expansionStore.DataFilePath,
+        "{\"Settings\":{\"ProjectExpansionStates\":null}}");
+    var explicitNullData = expansionStore.Load();
+    AssertEqual(0,
+        explicitNullData.Settings.ProjectExpansionStates.Count,
+        "data store normalizes an explicit null expansion field");
+
+    ProjectExpansionRules.SetExpanded(
+        explicitNullData.Settings,
+        ProjectSectionKind.Weekly,
+        "project-persisted",
+        true);
+    expansionStore.Save(explicitNullData);
+
+    var reloadedExpansionData = new HorizonDataStore(expansionStoreRoot).Load();
+    AssertEqual(true,
+        ProjectExpansionRules.IsExpanded(
+            reloadedExpansionData.Settings,
+            ProjectSectionKind.Weekly,
+            "project-persisted"),
+        "weekly expansion survives save and reload");
+    AssertEqual(false,
+        ProjectExpansionRules.IsExpanded(
+            reloadedExpansionData.Settings,
+            ProjectSectionKind.LongTerm,
+            "project-persisted"),
+        "save and reload preserves independent section state");
+}
+finally
+{
+    if (Directory.Exists(expansionStoreRoot))
+    {
+        Directory.Delete(expansionStoreRoot, recursive: true);
+    }
+}
 AssertEqual(
     "\"C:\\Program Files\\Horizon\\Horizon.App.exe\"",
     WindowsStartupService.BuildCommand(@"C:\Program Files\Horizon\Horizon.App.exe"),
@@ -194,6 +304,28 @@ static void AssertEqual<T>(T expected, T actual, string name)
     {
         throw new InvalidOperationException($"{name}: expected {expected}, got {actual}");
     }
+}
+
+static void AssertThrows<TException>(Action action, string name)
+    where TException : Exception
+{
+    try
+    {
+        action();
+    }
+    catch (TException)
+    {
+        return;
+    }
+    catch (Exception exception)
+    {
+        throw new InvalidOperationException(
+            $"{name}: expected {typeof(TException).Name}, got {exception.GetType().Name}",
+            exception);
+    }
+
+    throw new InvalidOperationException(
+        $"{name}: expected {typeof(TException).Name}, but no exception was thrown");
 }
 
 sealed class FakeStartupRegistrationService : IStartupRegistrationService

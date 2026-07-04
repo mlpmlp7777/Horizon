@@ -15,9 +15,8 @@ public static class ProjectExpansionRules
         ProjectSectionKind sectionKind,
         string projectId)
     {
-        return settings.ProjectExpansionStates.TryGetValue(
-            BuildKey(sectionKind, projectId),
-            out var isExpanded) && isExpanded;
+        var key = BuildKey(sectionKind, projectId);
+        return EnsureStateDictionary(settings).TryGetValue(key, out var isExpanded) && isExpanded;
     }
 
     public static void SetExpanded(
@@ -26,7 +25,8 @@ public static class ProjectExpansionRules
         string projectId,
         bool isExpanded)
     {
-        settings.ProjectExpansionStates[BuildKey(sectionKind, projectId)] = isExpanded;
+        var key = BuildKey(sectionKind, projectId);
+        EnsureStateDictionary(settings)[key] = isExpanded;
     }
 
     public static bool Toggle(
@@ -41,9 +41,10 @@ public static class ProjectExpansionRules
 
     public static bool RemoveProject(HorizonSettings settings, string projectId)
     {
-        var weeklyRemoved = settings.ProjectExpansionStates.Remove(
+        var states = EnsureStateDictionary(settings);
+        var weeklyRemoved = states.Remove(
             BuildKey(ProjectSectionKind.Weekly, projectId));
-        var longTermRemoved = settings.ProjectExpansionStates.Remove(
+        var longTermRemoved = states.Remove(
             BuildKey(ProjectSectionKind.LongTerm, projectId));
         return weeklyRemoved || longTermRemoved;
     }
@@ -52,6 +53,7 @@ public static class ProjectExpansionRules
         HorizonSettings settings,
         IEnumerable<string> knownProjectIds)
     {
+        var states = EnsureStateDictionary(settings);
         var knownKeys = knownProjectIds
             .SelectMany(projectId => new[]
             {
@@ -60,13 +62,13 @@ public static class ProjectExpansionRules
             })
             .ToHashSet(StringComparer.Ordinal);
 
-        var staleKeys = settings.ProjectExpansionStates.Keys
+        var staleKeys = states.Keys
             .Where(key => !knownKeys.Contains(key))
             .ToList();
 
         foreach (var key in staleKeys)
         {
-            settings.ProjectExpansionStates.Remove(key);
+            states.Remove(key);
         }
 
         return staleKeys.Count > 0;
@@ -75,7 +77,21 @@ public static class ProjectExpansionRules
     private static string BuildKey(ProjectSectionKind sectionKind, string projectId)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(projectId);
-        var prefix = sectionKind == ProjectSectionKind.Weekly ? "weekly" : "longterm";
+        var prefix = sectionKind switch
+        {
+            ProjectSectionKind.Weekly => "weekly",
+            ProjectSectionKind.LongTerm => "longterm",
+            _ => throw new ArgumentOutOfRangeException(
+                nameof(sectionKind),
+                sectionKind,
+                "Unknown project section kind.")
+        };
         return $"{prefix}:{projectId}";
+    }
+
+    private static Dictionary<string, bool> EnsureStateDictionary(HorizonSettings settings)
+    {
+        ArgumentNullException.ThrowIfNull(settings);
+        return settings.ProjectExpansionStates ??= [];
     }
 }
