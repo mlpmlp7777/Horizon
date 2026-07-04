@@ -266,6 +266,10 @@
 
         <DataTemplate x:Key="ProjectSummaryTemplate" DataType="{x:Type vm:ProjectSectionViewModel}">
             <Button Style="{StaticResource ProjectSummaryButtonStyle}"
+                    AutomationProperties.Name="{Binding ProjectName, StringFormat=展开或收起项目：{0}}"
+                    IsHitTestVisible="{Binding IsCollapsible}"
+                    Focusable="{Binding IsCollapsible}"
+                    IsTabStop="{Binding IsCollapsible}"
                     Click="ProjectSummaryButton_OnClick">
                 <StackPanel>
                     <Grid>
@@ -277,7 +281,8 @@
 
                         <Border Width="22" Height="22" CornerRadius="11"
                                 VerticalAlignment="Center"
-                                Background="#D9E5FF">
+                                Background="#D9E5FF"
+                                Visibility="{Binding IsCollapsible, Converter={StaticResource BooleanToVisibilityConverter}}">
                             <TextBlock Text="{Binding ExpansionGlyph}"
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center"
