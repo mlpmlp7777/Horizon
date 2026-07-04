@@ -23,13 +23,33 @@
         SizeChanged="MainWindow_OnLocationOrSizeChanged"
         PreviewKeyDown="MainWindow_OnPreviewKeyDown">
     <Window.Resources>
+        <SolidColorBrush x:Key="OrbitPanelBrush" Color="#F7F9FD" />
+        <SolidColorBrush x:Key="OrbitHeaderBrush" Color="#DCE9FF" />
+        <SolidColorBrush x:Key="OrbitPrimaryBrush" Color="#2D68FF" />
+        <SolidColorBrush x:Key="OrbitInkBrush" Color="#14213D" />
+        <SolidColorBrush x:Key="OrbitMutedBrush" Color="#697B9B" />
+        <SolidColorBrush x:Key="OrbitCollapsedCardBrush" Color="#EAF0F9" />
+        <SolidColorBrush x:Key="OrbitExpandedCardBrush" Color="#FFFFFF" />
+        <SolidColorBrush x:Key="OrbitExpandedBorderBrush" Color="#9DB9FF" />
+        <SolidColorBrush x:Key="OrbitTaskBrush" Color="#EEF3FF" />
+        <SolidColorBrush x:Key="OrbitTrackBrush" Color="#D4DEED" />
+        <SolidColorBrush x:Key="OrbitSignalBrush" Color="#D6FF58" />
+        <SolidColorBrush x:Key="OrbitControlBrush" Color="#F3F6FC" />
+        <SolidColorBrush x:Key="OrbitControlBorderBrush" Color="#D6E0F0" />
+        <SolidColorBrush x:Key="OrbitCardBorderBrush" Color="#D9E4F5" />
+        <SolidColorBrush x:Key="OrbitStatusBrush" Color="#EDF2FB" />
+        <SolidColorBrush x:Key="OrbitStatusInkBrush" Color="#466086" />
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
         <conv:EnumDisplayConverter x:Key="EnumDisplayConverter" />
 
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource OrbitInkBrush}" />
+        </Style>
+
         <Style TargetType="Button">
-            <Setter Property="Foreground" Value="#18324A" />
-            <Setter Property="Background" Value="#FFFFFF" />
-            <Setter Property="BorderBrush" Value="#D7DFE8" />
+            <Setter Property="Foreground" Value="{StaticResource OrbitInkBrush}" />
+            <Setter Property="Background" Value="{StaticResource OrbitControlBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource OrbitControlBorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="Padding" Value="10,6" />
             <Setter Property="Cursor" Value="Hand" />
@@ -41,7 +61,7 @@
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="14">
+                                CornerRadius="12">
                             <ContentPresenter Margin="{TemplateBinding Padding}"
                                               HorizontalAlignment="Center"
                                               VerticalAlignment="Center" />
@@ -63,15 +83,15 @@
         </Style>
 
         <Style x:Key="ActionButtonStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-            <Setter Property="Background" Value="#F7F9FC" />
-            <Setter Property="BorderBrush" Value="#D9E2EC" />
-            <Setter Property="Foreground" Value="#17324A" />
+            <Setter Property="Background" Value="{StaticResource OrbitControlBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource OrbitControlBorderBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource OrbitInkBrush}" />
         </Style>
 
         <Style x:Key="PinToggleButtonStyle" TargetType="ToggleButton">
-            <Setter Property="Background" Value="#F7F9FC" />
-            <Setter Property="BorderBrush" Value="#D9E2EC" />
-            <Setter Property="Foreground" Value="#52677B" />
+            <Setter Property="Background" Value="{StaticResource OrbitControlBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource OrbitControlBorderBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource OrbitMutedBrush}" />
             <Setter Property="Padding" Value="10,6" />
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="FontSize" Value="11" />
@@ -89,9 +109,9 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsChecked" Value="True">
-                                <Setter Property="Background" Value="#EAF3FD" />
-                                <Setter Property="BorderBrush" Value="#9EC1EA" />
-                                <Setter Property="Foreground" Value="#1B5DAE" />
+                                <Setter Property="Background" Value="#DCE7FF" />
+                                <Setter Property="BorderBrush" Value="{StaticResource OrbitExpandedBorderBrush}" />
+                                <Setter Property="Foreground" Value="#2458D4" />
                                 <Setter Property="FontWeight" Value="SemiBold" />
                             </Trigger>
                             <Trigger Property="IsMouseOver" Value="True">
@@ -104,10 +124,10 @@
         </Style>
 
         <Style x:Key="PrimaryActionButtonStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-            <Setter Property="Background" Value="#173B63" />
-            <Setter Property="BorderBrush" Value="#173B63" />
+            <Setter Property="Background" Value="{StaticResource OrbitPrimaryBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource OrbitPrimaryBrush}" />
             <Setter Property="Foreground" Value="White" />
-            <Setter Property="Padding" Value="12,6" />
+            <Setter Property="Padding" Value="12,7" />
             <Setter Property="FontWeight" Value="SemiBold" />
         </Style>
 
@@ -117,8 +137,8 @@
         </Style>
 
         <Style x:Key="HistoryWeekButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="#FFFFFF" />
-            <Setter Property="BorderBrush" Value="#DFE6ED" />
+            <Setter Property="Background" Value="{StaticResource OrbitExpandedCardBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource OrbitCardBorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="Padding" Value="12" />
             <Setter Property="Cursor" Value="Hand" />
@@ -136,8 +156,8 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="HistoryCardChrome" Property="Background" Value="#F8FBFE" />
-                                <Setter TargetName="HistoryCardChrome" Property="BorderBrush" Value="#B9CDE1" />
+                                <Setter TargetName="HistoryCardChrome" Property="Background" Value="{StaticResource OrbitTaskBrush}" />
+                                <Setter TargetName="HistoryCardChrome" Property="BorderBrush" Value="{StaticResource OrbitExpandedBorderBrush}" />
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="HistoryCardChrome" Property="Opacity" Value="0.82" />
@@ -153,12 +173,12 @@
             <Setter Property="BorderBrush" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="Padding" Value="0" />
-            <Setter Property="Foreground" Value="#215FA8" />
+            <Setter Property="Foreground" Value="{StaticResource OrbitPrimaryBrush}" />
             <Setter Property="FontWeight" Value="SemiBold" />
         </Style>
 
         <Style x:Key="SegmentRadioButtonStyle" TargetType="RadioButton">
-            <Setter Property="Foreground" Value="#738396" />
+            <Setter Property="Foreground" Value="{StaticResource OrbitMutedBrush}" />
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="Padding" Value="0" />
             <Setter Property="FontSize" Value="10" />
@@ -170,7 +190,7 @@
                                 Margin="2"
                                 Padding="8,5"
                                 Background="Transparent"
-                                CornerRadius="8">
+                                CornerRadius="10">
                             <TextBlock Text="{TemplateBinding Content}"
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center"
@@ -180,8 +200,8 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="Chip" Property="Background" Value="#FFFFFF" />
-                                <Setter Property="Foreground" Value="#173B63" />
+                                <Setter TargetName="Chip" Property="Background" Value="{StaticResource OrbitExpandedCardBrush}" />
+                                <Setter Property="Foreground" Value="#2458D4" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -191,18 +211,24 @@
 
         <Style TargetType="ComboBox">
             <Setter Property="Padding" Value="7,4" />
-            <Setter Property="Background" Value="#FFFFFF" />
-            <Setter Property="BorderBrush" Value="#D9E1EA" />
+            <Setter Property="Background" Value="{StaticResource OrbitExpandedCardBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource OrbitControlBorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Foreground" Value="#18324A" />
+            <Setter Property="Foreground" Value="{StaticResource OrbitInkBrush}" />
+        </Style>
+
+        <Style TargetType="DatePicker">
+            <Setter Property="Background" Value="{StaticResource OrbitExpandedCardBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource OrbitControlBorderBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource OrbitInkBrush}" />
         </Style>
 
         <Style TargetType="TextBox">
             <Setter Property="Padding" Value="9,7" />
-            <Setter Property="Background" Value="#FFFFFF" />
-            <Setter Property="BorderBrush" Value="#D9E1EA" />
+            <Setter Property="Background" Value="{StaticResource OrbitExpandedCardBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource OrbitControlBorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Foreground" Value="#18324A" />
+            <Setter Property="Foreground" Value="{StaticResource OrbitInkBrush}" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="TextBox">
@@ -221,13 +247,28 @@
         <Style TargetType="ProgressBar">
             <Setter Property="Height" Value="6" />
             <Setter Property="Maximum" Value="100" />
-            <Setter Property="Background" Value="#E3EAF1" />
+            <Setter Property="Background" Value="{StaticResource OrbitTrackBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource OrbitPrimaryBrush}" />
             <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ProgressBar">
+                        <Grid x:Name="PART_Track">
+                            <Border CornerRadius="3"
+                                    Background="{TemplateBinding Background}" />
+                            <Border x:Name="PART_Indicator"
+                                    HorizontalAlignment="Left"
+                                    Background="{TemplateBinding Foreground}"
+                                    CornerRadius="3" />
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
         <Style x:Key="PanelCardStyle" TargetType="Border">
-            <Setter Property="Background" Value="#FFFFFF" />
-            <Setter Property="BorderBrush" Value="#E1E6ED" />
+            <Setter Property="Background" Value="{StaticResource OrbitExpandedCardBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource OrbitCardBorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="18" />
         </Style>
@@ -235,14 +276,14 @@
         <Style x:Key="ProjectCardStyle" TargetType="Border">
             <Setter Property="Margin" Value="0,0,0,8" />
             <Setter Property="Padding" Value="10" />
-            <Setter Property="Background" Value="#EAF0F9" />
+            <Setter Property="Background" Value="{StaticResource OrbitCollapsedCardBrush}" />
             <Setter Property="BorderBrush" Value="Transparent" />
             <Setter Property="BorderThickness" Value="2" />
             <Setter Property="CornerRadius" Value="18" />
             <Style.Triggers>
                 <DataTrigger Binding="{Binding IsExpanded}" Value="True">
-                    <Setter Property="Background" Value="#FFFFFF" />
-                    <Setter Property="BorderBrush" Value="#9DB9FF" />
+                    <Setter Property="Background" Value="{StaticResource OrbitExpandedCardBrush}" />
+                    <Setter Property="BorderBrush" Value="{StaticResource OrbitExpandedBorderBrush}" />
                 </DataTrigger>
             </Style.Triggers>
         </Style>
@@ -275,14 +316,14 @@
 
                     <Border Width="22" Height="22" CornerRadius="11"
                             VerticalAlignment="Center"
-                            Background="#D9E5FF"
+                            Background="{StaticResource OrbitHeaderBrush}"
                             Visibility="{Binding IsCollapsible, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <TextBlock Text="{Binding ExpansionGlyph}"
                                    HorizontalAlignment="Center"
                                    VerticalAlignment="Center"
                                    FontSize="11"
                                    FontWeight="Bold"
-                                   Foreground="#2458D4" />
+                                   Foreground="{StaticResource OrbitPrimaryBrush}" />
                     </Border>
 
                     <StackPanel Grid.Column="1" Margin="9,0,8,0">
@@ -290,13 +331,13 @@
                                    ToolTip="{Binding ProjectName}"
                                    FontSize="12.5"
                                    FontWeight="SemiBold"
-                                   Foreground="#14213D"
+                                   Foreground="{StaticResource OrbitInkBrush}"
                                    TextTrimming="CharacterEllipsis" />
                         <TextBlock Margin="0,3,0,0"
                                    Text="{Binding ProjectMeta}"
                                    ToolTip="{Binding ProjectMeta}"
                                    FontSize="9.5"
-                                   Foreground="#697B9B"
+                                   Foreground="{StaticResource OrbitMutedBrush}"
                                    TextTrimming="CharacterEllipsis" />
                     </StackPanel>
 
@@ -313,8 +354,8 @@
                 <ProgressBar Margin="31,9,0,0"
                              Height="5"
                              Value="{Binding Progress, Mode=OneWay}"
-                             Foreground="#2D68FF"
-                             Background="#D4DEED" />
+                             Foreground="{StaticResource OrbitPrimaryBrush}"
+                             Background="{StaticResource OrbitTrackBrush}" />
             </StackPanel>
         </DataTemplate>
 
@@ -374,8 +415,8 @@
                             <DataTemplate>
                                 <Border Margin="0,0,0,8"
                                         Padding="10"
-                                        Background="#F7F9FC"
-                                        BorderBrush="#E5EBF2"
+                                        Background="{StaticResource OrbitTaskBrush}"
+                                        BorderBrush="{StaticResource OrbitCardBorderBrush}"
                                         BorderThickness="1"
                                         CornerRadius="14">
                                     <StackPanel>
@@ -390,7 +431,7 @@
                                                            FontSize="12"
                                                            FontWeight="SemiBold"
                                                            TextWrapping="Wrap"
-                                                           Foreground="#17324A" />
+                                                           Foreground="{StaticResource OrbitInkBrush}" />
                                             </StackPanel>
 
                                             <WrapPanel Grid.Column="1" HorizontalAlignment="Right">
@@ -408,14 +449,14 @@
 
                                         <Border Margin="0,8,0,0"
                                                 Padding="9,7"
-                                                Background="#FFFFFF"
-                                                BorderBrush="#E5EBF2"
+                                                Background="{StaticResource OrbitExpandedCardBrush}"
+                                                BorderBrush="{StaticResource OrbitCardBorderBrush}"
                                                 BorderThickness="1"
                                                 CornerRadius="12"
                                                 Visibility="{Binding HasNotesPreview, Converter={StaticResource BooleanToVisibilityConverter}}">
                                             <TextBlock Text="{Binding NotesPreview}"
                                                        FontSize="10"
-                                                       Foreground="#324A61"
+                                                       Foreground="{StaticResource OrbitStatusInkBrush}"
                                                        TextWrapping="Wrap" />
                                         </Border>
 
@@ -428,17 +469,17 @@
                                                        Margin="0,0,8,0"
                                                        Text="{Binding ProgressText, StringFormat=进度 {0}}"
                                                        FontSize="10"
-                                                       Foreground="#40627F" />
+                                                       Foreground="{StaticResource OrbitMutedBrush}" />
                                             <ProgressBar Grid.Column="1"
                                                          VerticalAlignment="Center"
-                                                         Foreground="#2A73C9"
+                                                         Foreground="{StaticResource OrbitPrimaryBrush}"
                                                          Value="{Binding ProgressValue, Mode=OneWay}" />
                                         </Grid>
 
                                         <Border Margin="0,8,0,0"
                                                 Padding="2"
-                                                Background="#EEF2F6"
-                                                BorderBrush="#E1E7EE"
+                                                Background="{StaticResource OrbitTrackBrush}"
+                                                BorderBrush="{StaticResource OrbitControlBorderBrush}"
                                                 BorderThickness="1"
                                                 CornerRadius="10">
                                             <UniformGrid Columns="3">
@@ -465,7 +506,7 @@
 
                                         <Border Margin="0,8,0,0"
                                                 Padding="0,8,0,0"
-                                                BorderBrush="#E2E8EF"
+                                                BorderBrush="{StaticResource OrbitCardBorderBrush}"
                                                 BorderThickness="0,1,0,0">
                                             <StackPanel>
                                                 <Grid Visibility="{Binding HasAnnotations, Converter={StaticResource BooleanToVisibilityConverter}}">
@@ -476,13 +517,13 @@
                                                     <TextBlock Margin="0,0,8,0"
                                                                Text="{Binding LatestAnnotationText}"
                                                                FontSize="10"
-                                                               Foreground="#526273"
+                                                               Foreground="{StaticResource OrbitMutedBrush}"
                                                                TextWrapping="NoWrap"
                                                                TextTrimming="CharacterEllipsis" />
                                                     <TextBlock Grid.Column="1"
                                                                Text="{Binding LatestAnnotationTimeText}"
                                                                FontSize="9"
-                                                               Foreground="#98A4B0" />
+                                                               Foreground="{StaticResource OrbitMutedBrush}" />
                                                 </Grid>
                                                 <Button Margin="0,5,0,0"
                                                         HorizontalAlignment="Right"
@@ -524,8 +565,8 @@
                             <DataTemplate>
                                 <Border Margin="0,0,0,8"
                                         Padding="10"
-                                        Background="#F4FAF8"
-                                        BorderBrush="#D3EBE3"
+                                        Background="{StaticResource OrbitTaskBrush}"
+                                        BorderBrush="{StaticResource OrbitCardBorderBrush}"
                                         BorderThickness="1"
                                         CornerRadius="14">
                                     <StackPanel>
@@ -540,11 +581,11 @@
                                                            FontSize="12"
                                                            FontWeight="SemiBold"
                                                            TextWrapping="Wrap"
-                                                           Foreground="#17324A" />
+                                                           Foreground="{StaticResource OrbitInkBrush}" />
                                                 <TextBlock Margin="0,5,0,0"
                                                            Text="{Binding MetaText}"
                                                            FontSize="10"
-                                                           Foreground="#5A7D6F"
+                                                           Foreground="{StaticResource OrbitMutedBrush}"
                                                            Visibility="{Binding HasMetaText, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                             </StackPanel>
 
@@ -563,14 +604,14 @@
 
                                         <Border Margin="0,8,0,0"
                                                 Padding="9,7"
-                                                Background="#FFFFFF"
-                                                BorderBrush="#D3EBE3"
+                                                Background="{StaticResource OrbitExpandedCardBrush}"
+                                                BorderBrush="{StaticResource OrbitCardBorderBrush}"
                                                 BorderThickness="1"
                                                 CornerRadius="12"
                                                 Visibility="{Binding HasNotesPreview, Converter={StaticResource BooleanToVisibilityConverter}}">
                                             <TextBlock Text="{Binding NotesPreview}"
                                                        FontSize="10"
-                                                       Foreground="#324A61"
+                                                       Foreground="{StaticResource OrbitStatusInkBrush}"
                                                        TextWrapping="Wrap" />
                                         </Border>
 
@@ -583,17 +624,17 @@
                                                        Margin="0,0,8,0"
                                                        Text="{Binding ProgressText, StringFormat=进度 {0}}"
                                                        FontSize="10"
-                                                       Foreground="#2F6C55" />
+                                                       Foreground="{StaticResource OrbitMutedBrush}" />
                                             <ProgressBar Grid.Column="1"
                                                          VerticalAlignment="Center"
-                                                         Foreground="#10A06D"
+                                                         Foreground="{StaticResource OrbitPrimaryBrush}"
                                                          Value="{Binding ProgressValue, Mode=OneWay}" />
                                         </Grid>
 
                                         <Border Margin="0,8,0,0"
                                                 Padding="2"
-                                                Background="#EDF4F1"
-                                                BorderBrush="#D3E6DF"
+                                                Background="{StaticResource OrbitTrackBrush}"
+                                                BorderBrush="{StaticResource OrbitControlBorderBrush}"
                                                 BorderThickness="1"
                                                 CornerRadius="10">
                                             <UniformGrid Columns="3">
@@ -620,7 +661,7 @@
 
                                         <Border Margin="0,8,0,0"
                                                 Padding="0,8,0,0"
-                                                BorderBrush="#D9E8E2"
+                                                BorderBrush="{StaticResource OrbitCardBorderBrush}"
                                                 BorderThickness="0,1,0,0">
                                             <StackPanel>
                                                 <Grid Visibility="{Binding HasAnnotations, Converter={StaticResource BooleanToVisibilityConverter}}">
@@ -631,20 +672,19 @@
                                                     <TextBlock Margin="0,0,8,0"
                                                                Text="{Binding LatestAnnotationText}"
                                                                FontSize="10"
-                                                               Foreground="#526273"
+                                                               Foreground="{StaticResource OrbitMutedBrush}"
                                                                TextWrapping="NoWrap"
                                                                TextTrimming="CharacterEllipsis" />
                                                     <TextBlock Grid.Column="1"
                                                                Text="{Binding LatestAnnotationTimeText}"
                                                                FontSize="9"
-                                                               Foreground="#98A4B0" />
+                                                               Foreground="{StaticResource OrbitMutedBrush}" />
                                                 </Grid>
                                                 <Button Margin="0,5,0,0"
                                                         HorizontalAlignment="Right"
                                                         Style="{StaticResource LinkButtonStyle}"
                                                         Content="{Binding AnnotationActionText}"
                                                         FontSize="9.5"
-                                                        Foreground="#28715A"
                                                         Tag="{Binding Id}"
                                                         Click="OpenLongTermAnnotationsButton_OnClick" />
                                             </StackPanel>
@@ -660,7 +700,6 @@
                             Style="{StaticResource LinkButtonStyle}"
                             Content="+ 添加长期任务"
                             Visibility="{Binding ShowAddTaskAction, Converter={StaticResource BooleanToVisibilityConverter}}"
-                            Foreground="#0D7D5A"
                             Tag="{Binding ProjectId}"
                             Click="AddLongTermTaskForProjectButton_OnClick" />
                     </StackPanel>
@@ -672,10 +711,11 @@
     <Grid>
         <Border x:Name="ExpandedPanelShell"
                 Margin="6"
-                Background="#F4F6F8"
-                BorderBrush="#D8E0E8"
+                Background="{StaticResource OrbitPanelBrush}"
+                BorderBrush="#B8C8E1"
                 BorderThickness="1"
-                CornerRadius="28">
+                CornerRadius="30"
+                ClipToBounds="True">
             <Grid Margin="18,22,16,16">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -683,6 +723,32 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
+
+                <Border Grid.RowSpan="4"
+                        Height="112"
+                        Margin="-18,-22,-16,0"
+                        VerticalAlignment="Top"
+                        Background="{StaticResource OrbitHeaderBrush}"
+                        CornerRadius="29,29,0,0"
+                        IsHitTestVisible="False" />
+                <Ellipse Grid.RowSpan="4"
+                         Width="118"
+                         Height="118"
+                         Margin="0,-68,-52,0"
+                         HorizontalAlignment="Right"
+                         VerticalAlignment="Top"
+                         Stroke="#B8CEFF"
+                         StrokeThickness="22"
+                         Opacity="0.75"
+                         IsHitTestVisible="False" />
+                <Ellipse Grid.RowSpan="4"
+                         Width="8"
+                         Height="8"
+                         Margin="0,-5,10,0"
+                         HorizontalAlignment="Right"
+                         VerticalAlignment="Top"
+                         Fill="{StaticResource OrbitSignalBrush}"
+                         IsHitTestVisible="False" />
 
                 <Grid Grid.Row="0" Margin="0,0,0,10">
                     <Grid.ColumnDefinitions>
@@ -705,11 +771,11 @@
                             <TextBlock Text="Horizon"
                                        FontSize="18"
                                        FontWeight="SemiBold"
-                                       Foreground="#0F2438" />
+                                       Foreground="{StaticResource OrbitInkBrush}" />
                             <TextBlock Margin="0,3,0,0"
                                        Text="{Binding HeaderSubtitle}"
                                        FontSize="10"
-                                       Foreground="#708092" />
+                                       Foreground="{StaticResource OrbitMutedBrush}" />
                         </StackPanel>
                     </Grid>
 
@@ -743,14 +809,14 @@
                 <Border Grid.Row="2"
                         Margin="0,0,0,10"
                         Padding="10,8"
-                        Background="#EDF4FB"
-                        BorderBrush="#D9E6F3"
+                        Background="{StaticResource OrbitStatusBrush}"
+                        BorderBrush="{StaticResource OrbitControlBorderBrush}"
                         BorderThickness="1"
                         CornerRadius="14"
                         Visibility="{Binding HasStatusMessage, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <TextBlock Text="{Binding StatusMessage}"
                                FontSize="10"
-                               Foreground="#40627F" />
+                               Foreground="{StaticResource OrbitStatusInkBrush}" />
                 </Border>
 
                 <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto">
@@ -759,11 +825,11 @@
                             <TextBlock Text="本周任务"
                                        FontSize="14.5"
                                        FontWeight="SemiBold"
-                                       Foreground="#10263C" />
+                                       Foreground="{StaticResource OrbitInkBrush}" />
                             <TextBlock Margin="0,4,0,10"
                                        Text="右侧按钮只能贴着屏幕最右边，上下拖动位置，点击后展开面板。"
                                        FontSize="10.5"
-                                       Foreground="#6B7B8C" />
+                                       Foreground="{StaticResource OrbitMutedBrush}" />
 
                             <Border Padding="14"
                                     Margin="0,0,0,10"
@@ -772,11 +838,11 @@
                                 <StackPanel>
                                     <TextBlock Text="本周还没有任务"
                                                FontWeight="SemiBold"
-                                               Foreground="#10263C" />
+                                               Foreground="{StaticResource OrbitInkBrush}" />
                                     <TextBlock Margin="0,6,0,12"
                                                Text="本周任务默认就是当前周内容，不再额外设置开始和截止时间。"
                                                FontSize="10.5"
-                                               Foreground="#6B7B8C"
+                                               Foreground="{StaticResource OrbitMutedBrush}"
                                                TextWrapping="Wrap" />
                                     <Button HorizontalAlignment="Left"
                                             Style="{StaticResource PrimaryActionButtonStyle}"
@@ -792,11 +858,11 @@
                                        Text="长期任务"
                                        FontSize="14.5"
                                        FontWeight="SemiBold"
-                                       Foreground="#0A2E22" />
+                                       Foreground="{StaticResource OrbitInkBrush}" />
                             <TextBlock Margin="0,4,0,10"
                                        Text="长期任务按项目归类，并保留开始时间和结束时间。"
                                        FontSize="10.5"
-                                       Foreground="#5A7D6F" />
+                                       Foreground="{StaticResource OrbitMutedBrush}" />
 
                             <Border Padding="14"
                                     Margin="0,0,0,10"
@@ -805,11 +871,11 @@
                                 <StackPanel>
                                     <TextBlock Text="还没有长期任务"
                                                FontWeight="SemiBold"
-                                               Foreground="#10263C" />
+                                               Foreground="{StaticResource OrbitInkBrush}" />
                                     <TextBlock Margin="0,6,0,12"
                                                Text="可以先在设置里建好项目，再从下拉里快速选择。"
                                                FontSize="10.5"
-                                               Foreground="#6B7B8C"
+                                               Foreground="{StaticResource OrbitMutedBrush}"
                                                TextWrapping="Wrap" />
                                     <Button HorizontalAlignment="Left"
                                             Style="{StaticResource ActionButtonStyle}"
@@ -826,15 +892,15 @@
                             <TextBlock Text="历史"
                                        FontSize="14.5"
                                        FontWeight="SemiBold"
-                                       Foreground="#10263C" />
+                                       Foreground="{StaticResource OrbitInkBrush}" />
                             <TextBlock Margin="0,4,0,10"
                                        Text="先按周浏览摘要，再进入所选周查看具体任务。"
                                        FontSize="10.5"
-                                       Foreground="#6B7B8C" />
+                                       Foreground="{StaticResource OrbitMutedBrush}" />
 
                             <Border Padding="2"
                                     Margin="0,0,0,10"
-                                    Background="#E9EEF4"
+                                    Background="{StaticResource OrbitTrackBrush}"
                                     CornerRadius="10">
                                 <UniformGrid Columns="2">
                                     <RadioButton Style="{StaticResource SegmentRadioButtonStyle}"
@@ -857,7 +923,7 @@
                                         Visibility="{Binding ShowHistoryEmptyState, Converter={StaticResource BooleanToVisibilityConverter}}">
                                     <TextBlock Text="当前类型还没有历史任务。"
                                                FontSize="10.5"
-                                               Foreground="#6B7B8C" />
+                                               Foreground="{StaticResource OrbitMutedBrush}" />
                                 </Border>
 
                                 <ItemsControl ItemsSource="{Binding HistoryWeeks}">
@@ -876,17 +942,17 @@
                                                         <TextBlock Text="{Binding WeekTitle}"
                                                                    FontSize="12"
                                                                    FontWeight="SemiBold"
-                                                                   Foreground="#253C51" />
+                                                                   Foreground="{StaticResource OrbitInkBrush}" />
                                                         <TextBlock Grid.Column="1"
                                                                    Text="›"
-                                                                   Foreground="#5B7895" />
+                                                                   Foreground="{StaticResource OrbitMutedBrush}" />
                                                     </Grid>
                                                     <TextBlock Margin="0,6,0,0"
                                                                Text="{Binding SummaryText}"
                                                                FontSize="10"
-                                                               Foreground="#748392" />
+                                                               Foreground="{StaticResource OrbitMutedBrush}" />
                                                     <ProgressBar Margin="0,8,0,0"
-                                                                 Foreground="#2A73C9"
+                                                                 Foreground="{StaticResource OrbitPrimaryBrush}"
                                                                  Value="{Binding ProgressValue, Mode=OneWay}" />
                                                 </StackPanel>
                                             </Button>
@@ -904,11 +970,11 @@
                                 <TextBlock Text="{Binding SelectedHistoryTitle}"
                                            FontSize="13"
                                            FontWeight="SemiBold"
-                                           Foreground="#10263C" />
+                                           Foreground="{StaticResource OrbitInkBrush}" />
                                 <TextBlock Margin="0,4,0,10"
                                            Text="{Binding SelectedHistorySummary}"
                                            FontSize="10"
-                                           Foreground="#6B7B8C" />
+                                           Foreground="{StaticResource OrbitMutedBrush}" />
                                 <ItemsControl ItemsSource="{Binding HistoryDetailSections}"
                                               ItemTemplate="{StaticResource WeeklyProjectSectionTemplate}"
                                               Visibility="{Binding IsWeeklyHistoryKind, Converter={StaticResource BooleanToVisibilityConverter}}" />
@@ -925,7 +991,7 @@
         <Border x:Name="CollapsedSliverShell"
                 Width="6"
                 Height="72"
-                Background="#173B63"
+                Background="{StaticResource OrbitPrimaryBrush}"
                 CornerRadius="6,0,0,6"
                 HorizontalAlignment="Right"
                 VerticalAlignment="Top"
@@ -935,8 +1001,8 @@
         <Border x:Name="HoverHandleShell"
                 Width="30"
                 Height="92"
-                Background="#173B63"
-                BorderBrush="#0E2640"
+                Background="{StaticResource OrbitPrimaryBrush}"
+                BorderBrush="#2458D4"
                 BorderThickness="1"
                 CornerRadius="14,0,0,14"
                 HorizontalAlignment="Right"
@@ -960,7 +1026,7 @@
                         Height="3"
                         CornerRadius="2"
                         HorizontalAlignment="Center"
-                        Background="#6E8FB4" />
+                        Background="#B8CEFF" />
 
                 <TextBlock Grid.Row="1"
                            Text="H"
@@ -974,7 +1040,7 @@
                            Text="拖"
                            HorizontalAlignment="Center"
                            FontSize="9"
-                           Foreground="#B6CAE0" />
+                           Foreground="{StaticResource OrbitHeaderBrush}" />
             </Grid>
         </Border>
 
@@ -982,10 +1048,10 @@
               Visibility="{Binding IsEditorOpen, Converter={StaticResource BooleanToVisibilityConverter}}">
             <Border Width="316"
                     Padding="16"
-                    Background="#FFFFFF"
-                    BorderBrush="#D9E1EA"
+                    Background="{StaticResource OrbitExpandedCardBrush}"
+                    BorderBrush="{StaticResource OrbitExpandedBorderBrush}"
                     BorderThickness="1"
-                    CornerRadius="24"
+                    CornerRadius="22"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="720">
@@ -993,11 +1059,11 @@
                         <TextBlock Text="{Binding EditorTitle}"
                                    FontSize="17"
                                    FontWeight="SemiBold"
-                                   Foreground="#10263C" />
+                                   Foreground="{StaticResource OrbitInkBrush}" />
                         <TextBlock Margin="0,6,0,14"
                                    Text="{Binding EditorSubtitle}"
                                    FontSize="11"
-                                   Foreground="#6B7B8C"
+                                   Foreground="{StaticResource OrbitMutedBrush}"
                                    TextWrapping="Wrap" />
 
                         <Border Padding="12"
@@ -1087,11 +1153,11 @@
                             <StackPanel>
                                 <TextBlock Text="系统"
                                            FontWeight="SemiBold"
-                                           Foreground="#17324A" />
+                                           Foreground="{StaticResource OrbitInkBrush}" />
                                 <Border Padding="10"
                                         Margin="0,8,0,14"
-                                        Background="#F7F9FC"
-                                        BorderBrush="#E1E6ED"
+                                        Background="{StaticResource OrbitTaskBrush}"
+                                        BorderBrush="{StaticResource OrbitCardBorderBrush}"
                                         BorderThickness="1"
                                         CornerRadius="14">
                                     <Grid>
@@ -1102,11 +1168,11 @@
                                         <StackPanel Grid.Column="0" Margin="0,0,12,0">
                                             <TextBlock Text="开机自动启动"
                                                        FontWeight="SemiBold"
-                                                       Foreground="#17324A" />
+                                                       Foreground="{StaticResource OrbitInkBrush}" />
                                             <TextBlock Margin="0,4,0,0"
                                                        Text="登录 Windows 后自动启动，并保持右侧触发条状态。"
                                                        FontSize="10"
-                                                       Foreground="#6B7B8C"
+                                                       Foreground="{StaticResource OrbitMutedBrush}"
                                                        TextWrapping="Wrap" />
                                         </StackPanel>
                                         <ToggleButton Grid.Column="1"
@@ -1122,13 +1188,13 @@
                                 <TextBlock Margin="0,6,0,10"
                                            Text="新增和修改后，项目会立即出现在新建任务的下拉框中。下拉框仍支持手动输入。"
                                            FontSize="10"
-                                           Foreground="#6B7B8C"
+                                           Foreground="{StaticResource OrbitMutedBrush}"
                                            TextWrapping="Wrap" />
 
                                 <Border Padding="10"
                                         Margin="0,0,0,10"
-                                        Background="#F7F9FC"
-                                        BorderBrush="#E1E6ED"
+                                        Background="{StaticResource OrbitTaskBrush}"
+                                        BorderBrush="{StaticResource OrbitCardBorderBrush}"
                                         BorderThickness="1"
                                         CornerRadius="14">
                                     <ItemsControl ItemsSource="{Binding ProjectCatalogRows}">
@@ -1142,11 +1208,11 @@
                                                     <StackPanel Grid.Column="0" Margin="0,0,10,0">
                                                         <TextBlock Text="{Binding Name}"
                                                                    FontWeight="SemiBold"
-                                                                   Foreground="#17324A" />
+                                                                   Foreground="{StaticResource OrbitInkBrush}" />
                                                         <TextBlock Margin="0,4,0,0"
                                                                    Text="{Binding Summary}"
                                                                    FontSize="10"
-                                                                   Foreground="#6B7B8C" />
+                                                                   Foreground="{StaticResource OrbitMutedBrush}" />
                                                     </StackPanel>
                                                     <WrapPanel Grid.Column="1">
                                                         <Button Style="{StaticResource MiniButtonStyle}"
@@ -1189,21 +1255,21 @@
                             <StackPanel>
                                 <TextBlock Text="批注记录"
                                            FontWeight="SemiBold"
-                                           Foreground="#17324A" />
+                                           Foreground="{StaticResource OrbitInkBrush}" />
                                 <TextBlock Margin="0,4,0,10"
                                            Text="最新批注显示在任务卡片中；这里可以追加、修改和删除全部批注。"
                                            FontSize="10"
-                                           Foreground="#6B7B8C"
+                                           Foreground="{StaticResource OrbitMutedBrush}"
                                            TextWrapping="Wrap" />
 
                                 <Border Padding="10"
                                         Margin="0,0,0,10"
-                                        Background="#F7F9FC"
-                                        CornerRadius="10"
+                                        Background="{StaticResource OrbitStatusBrush}"
+                                        CornerRadius="12"
                                         Visibility="{Binding ShowAnnotationEmptyState, Converter={StaticResource BooleanToVisibilityConverter}}">
                                     <TextBlock Text="暂无批注，可以从下方添加第一条。"
                                                FontSize="10"
-                                               Foreground="#7A8998" />
+                                               Foreground="{StaticResource OrbitMutedBrush}" />
                                 </Border>
 
                                 <ItemsControl ItemsSource="{Binding AnnotationRows}">
@@ -1211,14 +1277,14 @@
                                         <DataTemplate>
                                             <Border Padding="10"
                                                     Margin="0,0,0,8"
-                                                    Background="#F7F9FC"
-                                                    BorderBrush="#E1E7EE"
+                                                    Background="{StaticResource OrbitTaskBrush}"
+                                                    BorderBrush="{StaticResource OrbitCardBorderBrush}"
                                                     BorderThickness="1"
                                                     CornerRadius="12">
                                                 <StackPanel>
                                                     <TextBlock Text="{Binding Content}"
                                                                FontSize="10.5"
-                                                               Foreground="#324A61"
+                                                               Foreground="{StaticResource OrbitStatusInkBrush}"
                                                                TextWrapping="Wrap" />
                                                     <Grid Margin="0,7,0,0">
                                                         <Grid.ColumnDefinitions>
@@ -1228,11 +1294,11 @@
                                                         <WrapPanel>
                                                             <TextBlock Text="{Binding TimeText}"
                                                                        FontSize="9"
-                                                                       Foreground="#8796A5" />
+                                                                       Foreground="{StaticResource OrbitMutedBrush}" />
                                                             <TextBlock Margin="6,0,0,0"
                                                                        Text="{Binding EditMarker}"
                                                                        FontSize="9"
-                                                                       Foreground="#8796A5" />
+                                                                       Foreground="{StaticResource OrbitMutedBrush}" />
                                                         </WrapPanel>
                                                         <WrapPanel Grid.Column="1">
                                                             <Button Style="{StaticResource MiniButtonStyle}"
