@@ -264,70 +264,108 @@
             </Setter>
         </Style>
 
-        <DataTemplate x:Key="ProjectSummaryTemplate" DataType="{x:Type vm:ProjectSectionViewModel}">
-            <Button Style="{StaticResource ProjectSummaryButtonStyle}"
-                    AutomationProperties.Name="{Binding ProjectName, StringFormat=展开或收起项目：{0}}"
-                    IsHitTestVisible="{Binding IsCollapsible}"
-                    Focusable="{Binding IsCollapsible}"
-                    IsTabStop="{Binding IsCollapsible}"
+        <DataTemplate x:Key="ProjectSummaryContentTemplate" DataType="{x:Type vm:ProjectSectionViewModel}">
+            <StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <Border Width="22" Height="22" CornerRadius="11"
+                            VerticalAlignment="Center"
+                            Background="#D9E5FF"
+                            Visibility="{Binding IsCollapsible, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <TextBlock Text="{Binding ExpansionGlyph}"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   FontSize="11"
+                                   FontWeight="Bold"
+                                   Foreground="#2458D4" />
+                    </Border>
+
+                    <StackPanel Grid.Column="1" Margin="9,0,8,0">
+                        <TextBlock Text="{Binding ProjectName}"
+                                   ToolTip="{Binding ProjectName}"
+                                   FontSize="12.5"
+                                   FontWeight="SemiBold"
+                                   Foreground="#14213D"
+                                   TextTrimming="CharacterEllipsis" />
+                        <TextBlock Margin="0,3,0,0"
+                                   Text="{Binding ProjectMeta}"
+                                   ToolTip="{Binding ProjectMeta}"
+                                   FontSize="9.5"
+                                   Foreground="#697B9B"
+                                   TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+
+                    <Border Grid.Column="2" Padding="7,4" CornerRadius="10"
+                            VerticalAlignment="Center"
+                            Background="#DCE7FF">
+                        <TextBlock Text="{Binding StatusText}"
+                                   FontSize="9"
+                                   FontWeight="SemiBold"
+                                   Foreground="#2458D4" />
+                    </Border>
+                </Grid>
+
+                <ProgressBar Margin="31,9,0,0"
+                             Height="5"
+                             Value="{Binding Progress, Mode=OneWay}"
+                             Foreground="#2D68FF"
+                             Background="#D4DEED" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate x:Key="ProjectSummaryInteractiveTemplate" DataType="{x:Type vm:ProjectSectionViewModel}">
+            <Button HorizontalAlignment="Stretch"
+                    AutomationProperties.HelpText="{Binding Text, ElementName=ProjectSummaryAutomationHelp}"
                     Click="ProjectSummaryButton_OnClick">
-                <StackPanel>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-
-                        <Border Width="22" Height="22" CornerRadius="11"
-                                VerticalAlignment="Center"
-                                Background="#D9E5FF"
-                                Visibility="{Binding IsCollapsible, Converter={StaticResource BooleanToVisibilityConverter}}">
-                            <TextBlock Text="{Binding ExpansionGlyph}"
-                                       HorizontalAlignment="Center"
-                                       VerticalAlignment="Center"
-                                       FontSize="11"
-                                       FontWeight="Bold"
-                                       Foreground="#2458D4" />
-                        </Border>
-
-                        <StackPanel Grid.Column="1" Margin="9,0,8,0">
-                            <TextBlock Text="{Binding ProjectName}"
-                                       FontSize="12.5"
-                                       FontWeight="SemiBold"
-                                       Foreground="#14213D"
-                                       TextTrimming="CharacterEllipsis" />
-                            <TextBlock Margin="0,3,0,0"
-                                       Text="{Binding ProjectMeta}"
-                                       FontSize="9.5"
-                                       Foreground="#697B9B"
-                                       TextTrimming="CharacterEllipsis" />
-                        </StackPanel>
-
-                        <Border Grid.Column="2" Padding="7,4" CornerRadius="10"
-                                VerticalAlignment="Center"
-                                Background="#DCE7FF">
-                            <TextBlock Text="{Binding StatusText}"
-                                       FontSize="9"
-                                       FontWeight="SemiBold"
-                                       Foreground="#2458D4" />
-                        </Border>
-                    </Grid>
-
-                    <ProgressBar Margin="31,9,0,0"
-                                 Height="5"
-                                 Value="{Binding Progress, Mode=OneWay}"
-                                 Foreground="#2D68FF"
-                                 Background="#D4DEED" />
-                </StackPanel>
+                <Button.Style>
+                    <Style TargetType="Button" BasedOn="{StaticResource ProjectSummaryButtonStyle}">
+                        <Setter Property="AutomationProperties.Name"
+                                Value="{Binding ProjectName, StringFormat=项目 {0}，已收起，按 Enter 展开}" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsExpanded}" Value="True">
+                                <Setter Property="AutomationProperties.Name"
+                                        Value="{Binding ProjectName, StringFormat=项目 {0}，已展开，按 Enter 收起}" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+                <Grid>
+                    <TextBlock x:Name="ProjectSummaryAutomationHelp" Visibility="Collapsed">
+                        <Run Text="{Binding ProjectMeta}" /><Run Text="；项目状态：" /><Run Text="{Binding StatusText}" />
+                    </TextBlock>
+                    <ContentControl Content="{Binding}"
+                                    HorizontalContentAlignment="Stretch"
+                                    ContentTemplate="{StaticResource ProjectSummaryContentTemplate}" />
+                </Grid>
             </Button>
         </DataTemplate>
+
+        <DataTemplate x:Key="ProjectSummaryReadOnlyTemplate" DataType="{x:Type vm:ProjectSectionViewModel}">
+            <ContentControl Content="{Binding}"
+                            HorizontalContentAlignment="Stretch"
+                            ContentTemplate="{StaticResource ProjectSummaryContentTemplate}" />
+        </DataTemplate>
+
+        <Style x:Key="ProjectSummaryPresenterStyle" TargetType="ContentControl">
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="ContentTemplate" Value="{StaticResource ProjectSummaryReadOnlyTemplate}" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsCollapsible}" Value="True">
+                    <Setter Property="ContentTemplate" Value="{StaticResource ProjectSummaryInteractiveTemplate}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
 
         <DataTemplate x:Key="WeeklyProjectSectionTemplate" DataType="{x:Type vm:ProjectSectionViewModel}">
             <Border Style="{StaticResource ProjectCardStyle}">
                 <StackPanel>
                     <ContentControl Content="{Binding}"
-                                    ContentTemplate="{StaticResource ProjectSummaryTemplate}" />
+                                    Style="{StaticResource ProjectSummaryPresenterStyle}" />
 
                     <StackPanel Margin="0,10,0,0"
                                 Visibility="{Binding IsExpanded, Converter={StaticResource BooleanToVisibilityConverter}}">
@@ -477,7 +515,7 @@
             <Border Style="{StaticResource ProjectCardStyle}">
                 <StackPanel>
                     <ContentControl Content="{Binding}"
-                                    ContentTemplate="{StaticResource ProjectSummaryTemplate}" />
+                                    Style="{StaticResource ProjectSummaryPresenterStyle}" />
 
                     <StackPanel Margin="0,10,0,0"
                                 Visibility="{Binding IsExpanded, Converter={StaticResource BooleanToVisibilityConverter}}">
