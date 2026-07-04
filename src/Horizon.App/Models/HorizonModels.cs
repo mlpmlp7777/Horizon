@@ -47,6 +47,7 @@ public sealed class HorizonSettings
     public double CollapsedButtonTop { get; set; } = 160;
     public bool IsPinned { get; set; }
     public bool StartWithWindows { get; set; } = true;
+    public Dictionary<string, bool> ProjectExpansionStates { get; set; } = [];
 }
 
 public sealed class ProjectItem

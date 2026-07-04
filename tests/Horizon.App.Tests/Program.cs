@@ -9,6 +9,39 @@ var area = new Rect(100, 50, 1200, 800);
 
 var legacySettings = JsonSerializer.Deserialize<HorizonSettings>("{}", JsonOptions.Default);
 AssertEqual(true, legacySettings?.StartWithWindows ?? false, "legacy settings enable autostart by default");
+var legacyExpansionSettings = JsonSerializer.Deserialize<HorizonSettings>("{}", JsonOptions.Default);
+AssertEqual(0, legacyExpansionSettings?.ProjectExpansionStates.Count ?? -1,
+    "legacy settings start with no project expansion state");
+
+var expansionSettings = new HorizonSettings();
+AssertEqual(false,
+    ProjectExpansionRules.IsExpanded(expansionSettings, ProjectSectionKind.Weekly, "project-a"),
+    "unknown weekly project defaults to collapsed");
+
+ProjectExpansionRules.SetExpanded(
+    expansionSettings,
+    ProjectSectionKind.Weekly,
+    "project-a",
+    isExpanded: true);
+
+AssertEqual(true,
+    ProjectExpansionRules.IsExpanded(expansionSettings, ProjectSectionKind.Weekly, "project-a"),
+    "weekly expansion is stored");
+AssertEqual(false,
+    ProjectExpansionRules.IsExpanded(expansionSettings, ProjectSectionKind.LongTerm, "project-a"),
+    "long-term expansion is independent");
+
+ProjectExpansionRules.SetExpanded(
+    expansionSettings,
+    ProjectSectionKind.LongTerm,
+    "missing-project",
+    isExpanded: true);
+AssertEqual(true,
+    ProjectExpansionRules.PruneUnknownProjects(expansionSettings, ["project-a"]),
+    "stale project expansion keys are pruned");
+AssertEqual(false,
+    ProjectExpansionRules.IsExpanded(expansionSettings, ProjectSectionKind.LongTerm, "missing-project"),
+    "pruned state is no longer visible");
 AssertEqual(
     "\"C:\\Program Files\\Horizon\\Horizon.App.exe\"",
     WindowsStartupService.BuildCommand(@"C:\Program Files\Horizon\Horizon.App.exe"),

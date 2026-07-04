@@ -40,6 +40,8 @@ public sealed class HorizonDataStore
             var json = File.ReadAllText(_dataFilePath);
             var data = JsonSerializer.Deserialize<HorizonDataFile>(json, JsonOptions.Default);
             var normalized = data ?? CreateEmpty();
+            normalized.Settings ??= new HorizonSettings();
+            normalized.Settings.ProjectExpansionStates ??= [];
             foreach (var task in normalized.WeeklyTasks)
             {
                 task.Annotations ??= [];
