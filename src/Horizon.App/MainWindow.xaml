@@ -64,6 +64,7 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="Thumb">
                         <Border Background="{TemplateBinding Background}"
+                                Margin="{TemplateBinding BorderThickness}"
                                 CornerRadius="4" />
                     </ControlTemplate>
                 </Setter.Value>
@@ -78,6 +79,10 @@
                         Background="Transparent"
                         CornerRadius="5" />
                 <Track x:Name="PART_Track"
+                       Minimum="{TemplateBinding Minimum}"
+                       Maximum="{TemplateBinding Maximum}"
+                       Value="{Binding Value, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
+                       ViewportSize="{TemplateBinding ViewportSize}"
                        IsDirectionReversed="True"
                        Orientation="Vertical">
                     <Track.DecreaseRepeatButton>
@@ -86,8 +91,9 @@
                     </Track.DecreaseRepeatButton>
                     <Track.Thumb>
                         <Thumb x:Name="ScrollThumb"
-                               Width="6"
+                               Width="12"
                                MinHeight="30"
+                               BorderThickness="3,0"
                                HorizontalAlignment="Center"
                                Style="{StaticResource OrbitScrollThumbStyle}" />
                     </Track.Thumb>
@@ -102,7 +108,7 @@
                     <Setter TargetName="TrackChrome"
                             Property="Background"
                             Value="{StaticResource OrbitCollapsedCardBrush}" />
-                    <Setter TargetName="ScrollThumb" Property="Width" Value="8" />
+                    <Setter TargetName="ScrollThumb" Property="BorderThickness" Value="2,0" />
                 </Trigger>
                 <Trigger SourceName="ScrollThumb" Property="IsDragging" Value="True">
                     <Setter TargetName="ScrollThumb"
@@ -123,6 +129,10 @@
                         Background="Transparent"
                         CornerRadius="5" />
                 <Track x:Name="PART_Track"
+                       Minimum="{TemplateBinding Minimum}"
+                       Maximum="{TemplateBinding Maximum}"
+                       Value="{Binding Value, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
+                       ViewportSize="{TemplateBinding ViewportSize}"
                        IsDirectionReversed="False"
                        Orientation="Horizontal">
                     <Track.DecreaseRepeatButton>
@@ -131,8 +141,9 @@
                     </Track.DecreaseRepeatButton>
                     <Track.Thumb>
                         <Thumb x:Name="ScrollThumb"
-                               Height="6"
+                               Height="12"
                                MinWidth="30"
+                               BorderThickness="0,3"
                                VerticalAlignment="Center"
                                Style="{StaticResource OrbitScrollThumbStyle}" />
                     </Track.Thumb>
@@ -147,7 +158,7 @@
                     <Setter TargetName="TrackChrome"
                             Property="Background"
                             Value="{StaticResource OrbitCollapsedCardBrush}" />
-                    <Setter TargetName="ScrollThumb" Property="Height" Value="8" />
+                    <Setter TargetName="ScrollThumb" Property="BorderThickness" Value="0,2" />
                 </Trigger>
                 <Trigger SourceName="ScrollThumb" Property="IsDragging" Value="True">
                     <Setter TargetName="ScrollThumb"

@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Text.Json;
 using System.IO;
+using System.Xml.Linq;
 using Horizon.App;
 using Horizon.App.Models;
 using Horizon.App.Services;
@@ -505,6 +506,7 @@ var mainWindowXamlPath = Path.GetFullPath(Path.Combine(
     "..", "..", "..", "..", "..",
     "src", "Horizon.App", "MainWindow.xaml"));
 var mainWindowXaml = File.ReadAllText(mainWindowXamlPath);
+var mainWindowDocument = XDocument.Parse(mainWindowXaml);
 
 AssertContains("x:Key=\"OrbitScrollThumbStyle\"", mainWindowXaml,
     "scrollbar uses a reusable capsule thumb");
@@ -531,6 +533,44 @@ AssertContains("ScrollBar.PageLeftCommand", mainWindowXaml,
 AssertContains("ScrollBar.PageRightCommand", mainWindowXaml,
     "horizontal track preserves page-right behavior");
 
+var verticalScrollBarTemplate = FindKeyedElement(
+    mainWindowDocument,
+    "ControlTemplate",
+    "OrbitVerticalScrollBarTemplate");
+var horizontalScrollBarTemplate = FindKeyedElement(
+    mainWindowDocument,
+    "ControlTemplate",
+    "OrbitHorizontalScrollBarTemplate");
+var scrollThumbStyle = FindKeyedElement(
+    mainWindowDocument,
+    "Style",
+    "OrbitScrollThumbStyle");
+
+AssertTrackBindings(verticalScrollBarTemplate, "vertical scrollbar track");
+AssertTrackBindings(horizontalScrollBarTemplate, "horizontal scrollbar track");
+AssertThumbContract(
+    verticalScrollBarTemplate,
+    hitSizeProperty: "Width",
+    minimumLengthProperty: "MinHeight",
+    restingMargin: "3,0",
+    hoverMargin: "2,0",
+    name: "vertical scrollbar thumb");
+AssertThumbContract(
+    horizontalScrollBarTemplate,
+    hitSizeProperty: "Height",
+    minimumLengthProperty: "MinWidth",
+    restingMargin: "0,3",
+    hoverMargin: "0,2",
+    name: "horizontal scrollbar thumb");
+
+var thumbVisual = scrollThumbStyle
+    .Descendants()
+    .Single(element => element.Name.LocalName == "Border");
+AssertEqual(
+    "{TemplateBinding BorderThickness}",
+    (string?)thumbVisual.Attribute("Margin") ?? string.Empty,
+    "thumb template converts border thickness into visual inset");
+
 Console.WriteLine("Panel layout tests passed.");
 
 static void AssertRect(Rect actual, Rect expected, string name)
@@ -556,6 +596,79 @@ static void AssertContains(string expected, string actual, string name)
     {
         throw new InvalidOperationException($"{name}: missing {expected}");
     }
+}
+
+static XElement FindKeyedElement(XDocument document, string localName, string key)
+{
+    return document
+        .Descendants()
+        .Single(element =>
+            element.Name.LocalName == localName
+            && element.Attributes().Any(attribute =>
+                attribute.Name.LocalName == "Key" && attribute.Value == key));
+}
+
+static void AssertTrackBindings(XElement template, string name)
+{
+    var track = template
+        .Descendants()
+        .Single(element =>
+            element.Name.LocalName == "Track"
+            && element.Attributes().Any(attribute =>
+                attribute.Name.LocalName == "Name" && attribute.Value == "PART_Track"));
+
+    AssertEqual("{TemplateBinding Minimum}", (string?)track.Attribute("Minimum") ?? string.Empty,
+        $"{name} binds minimum");
+    AssertEqual("{TemplateBinding Maximum}", (string?)track.Attribute("Maximum") ?? string.Empty,
+        $"{name} binds maximum");
+    AssertEqual("{TemplateBinding ViewportSize}", (string?)track.Attribute("ViewportSize") ?? string.Empty,
+        $"{name} binds viewport size");
+
+    var valueBinding = (string?)track.Attribute("Value") ?? string.Empty;
+    AssertEqual(true, valueBinding.StartsWith("{Binding Value,", StringComparison.Ordinal),
+        $"{name} binds value");
+    AssertContains("RelativeSource={RelativeSource TemplatedParent}", valueBinding,
+        $"{name} binds value to the templated scrollbar");
+    AssertContains("Mode=TwoWay", valueBinding,
+        $"{name} sends thumb dragging back to scrollbar value");
+}
+
+static void AssertThumbContract(
+    XElement template,
+    string hitSizeProperty,
+    string minimumLengthProperty,
+    string restingMargin,
+    string hoverMargin,
+    string name)
+{
+    var thumb = template
+        .Descendants()
+        .Single(element =>
+            element.Name.LocalName == "Thumb"
+            && element.Attributes().Any(attribute =>
+                attribute.Name.LocalName == "Name" && attribute.Value == "ScrollThumb"));
+
+    AssertEqual("12", (string?)thumb.Attribute(hitSizeProperty) ?? string.Empty,
+        $"{name} keeps a 12px hit target");
+    AssertEqual("30", (string?)thumb.Attribute(minimumLengthProperty) ?? string.Empty,
+        $"{name} keeps a 30px minimum length");
+    AssertEqual(restingMargin, (string?)thumb.Attribute("BorderThickness") ?? string.Empty,
+        $"{name} renders a 6px resting capsule");
+
+    var hoverTrigger = template
+        .Descendants()
+        .Single(element =>
+            element.Name.LocalName == "Trigger"
+            && (string?)element.Attribute("Property") == "IsMouseOver"
+            && (string?)element.Attribute("Value") == "True");
+    var hoverInsetSetter = hoverTrigger
+        .Descendants()
+        .Single(element =>
+            element.Name.LocalName == "Setter"
+            && (string?)element.Attribute("TargetName") == "ScrollThumb"
+            && (string?)element.Attribute("Property") == "BorderThickness");
+    AssertEqual(hoverMargin, (string?)hoverInsetSetter.Attribute("Value") ?? string.Empty,
+        $"{name} renders an 8px hover capsule");
 }
 
 static void AssertThrows<TException>(Action action, string name)
