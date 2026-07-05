@@ -228,6 +228,11 @@ public partial class MainWindow : Window
         ExpandPanel();
     }
 
+    private void BulkProjectExpansionButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        _viewModel.ToggleAllVisibleProjectExpansions();
+    }
+
     private void ProjectSummaryButton_OnClick(object sender, RoutedEventArgs e)
     {
         if (sender is FrameworkElement

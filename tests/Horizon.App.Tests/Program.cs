@@ -322,6 +322,10 @@ try
     AssertEqual(0, viewModel.LongTermSections.Count, "unmatched search hides all long-term projects");
     AssertEqual(true, viewModel.ShowWeeklyEmptyState, "unmatched weekly search shows empty state");
     AssertEqual(true, viewModel.ShowLongTermEmptyState, "unmatched long-term search shows empty state");
+    AssertEqual(false, viewModel.CanBulkToggleProjectExpansion,
+        "unmatched search disables the bulk expansion control");
+    AssertEqual(false, viewModel.ToggleAllVisibleProjectExpansions(),
+        "bulk expansion is a no-op when no project is visible");
 
     viewModel.SearchText = string.Empty;
     AssertEqual(2, viewModel.WeeklySections.Count, "clearing search restores all weekly projects");
@@ -339,6 +343,58 @@ try
         viewModel.LongTermSections.Any(section => section.ProjectId == emptyProject.Id),
         "archive view does not generate empty long-term project cards");
     viewModel.ToggleArchivedTasks();
+
+    AssertEqual(true, viewModel.CanBulkToggleProjectExpansion,
+        "current view enables the bulk expansion control");
+    AssertEqual("全部展开", viewModel.BulkProjectExpansionActionText,
+        "collapsed projects offer the expand-all action");
+
+    AssertEqual(true, viewModel.ToggleAllVisibleProjectExpansions(),
+        "bulk action expands when at least one visible project is collapsed");
+    AssertEqual(true, viewModel.WeeklySections.All(section => section.IsExpanded),
+        "bulk action expands every visible weekly project");
+    AssertEqual(true, viewModel.LongTermSections.All(section => section.IsExpanded),
+        "bulk action expands every visible long-term project");
+    AssertEqual("全部收起", viewModel.BulkProjectExpansionActionText,
+        "fully expanded projects offer the collapse-all action");
+
+    var afterBulkExpand = store.Load();
+    AssertEqual(true,
+        ProjectExpansionRules.IsExpanded(afterBulkExpand.Settings, ProjectSectionKind.Weekly, project.Id),
+        "bulk weekly expansion is persisted");
+    AssertEqual(true,
+        ProjectExpansionRules.IsExpanded(afterBulkExpand.Settings, ProjectSectionKind.LongTerm, emptyProject.Id),
+        "bulk long-term expansion is persisted");
+
+    viewModel.ToggleProjectExpansion(emptyProject.Id, ProjectSectionKind.Weekly);
+    AssertEqual("全部展开", viewModel.BulkProjectExpansionActionText,
+        "mixed project state offers the expand-all action");
+    viewModel.ToggleAllVisibleProjectExpansions();
+    AssertEqual(true, viewModel.WeeklySections.All(section => section.IsExpanded),
+        "mixed project state expands to a uniform state");
+
+    AssertEqual(false, viewModel.ToggleAllVisibleProjectExpansions(),
+        "fully expanded projects collapse together");
+    AssertEqual(true, viewModel.WeeklySections.All(section => !section.IsExpanded),
+        "bulk collapse closes every visible weekly project");
+    AssertEqual(true, viewModel.LongTermSections.All(section => !section.IsExpanded),
+        "bulk collapse closes every visible long-term project");
+
+    viewModel.SearchText = project.Name;
+    viewModel.ToggleAllVisibleProjectExpansions();
+    viewModel.SearchText = string.Empty;
+    AssertEqual(true,
+        viewModel.WeeklySections.Single(section => section.ProjectId == project.Id).IsExpanded,
+        "filtered bulk action expands the visible weekly project");
+    AssertEqual(false,
+        viewModel.WeeklySections.Single(section => section.ProjectId == emptyProject.Id).IsExpanded,
+        "filtered bulk action leaves hidden weekly projects unchanged");
+    AssertEqual(false,
+        viewModel.LongTermSections.Single(section => section.ProjectId == emptyProject.Id).IsExpanded,
+        "filtered bulk action leaves hidden long-term projects unchanged");
+
+    viewModel.ToggleProjectExpansion(project.Id, ProjectSectionKind.Weekly);
+    viewModel.ToggleProjectExpansion(project.Id, ProjectSectionKind.LongTerm);
 
     AssertEqual(true,
         viewModel.ToggleProjectExpansion(project.Id, ProjectSectionKind.Weekly),
@@ -532,6 +588,12 @@ AssertContains("ScrollBar.PageLeftCommand", mainWindowXaml,
     "horizontal track preserves page-left behavior");
 AssertContains("ScrollBar.PageRightCommand", mainWindowXaml,
     "horizontal track preserves page-right behavior");
+AssertContains("Content=\"{Binding BulkProjectExpansionActionText}\"", mainWindowXaml,
+    "main page binds the bulk expansion button label");
+AssertContains("IsEnabled=\"{Binding CanBulkToggleProjectExpansion}\"", mainWindowXaml,
+    "main page disables bulk expansion when no project is visible");
+AssertContains("Click=\"BulkProjectExpansionButton_OnClick\"", mainWindowXaml,
+    "main page wires the bulk expansion click handler");
 
 var verticalScrollBarTemplate = FindKeyedElement(
     mainWindowDocument,

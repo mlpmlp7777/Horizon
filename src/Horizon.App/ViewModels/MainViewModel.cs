@@ -196,6 +196,17 @@ public sealed class MainViewModel : ObservableObject
     public bool IsLongTermHistoryKind => SelectedHistoryKind == HistoryTaskKind.LongTerm;
     public bool ShowWeeklyEmptyState => IsCurrentWeeklyView && WeeklySections.Count == 0;
     public bool ShowLongTermEmptyState => IsCurrentWeeklyView && LongTermSections.Count == 0;
+    public bool CanBulkToggleProjectExpansion =>
+        WeeklySections.Any(section => section.IsCollapsible)
+        || LongTermSections.Any(section => section.IsCollapsible);
+    public bool AreAllVisibleProjectSectionsExpanded =>
+        CanBulkToggleProjectExpansion
+        && WeeklySections
+            .Concat(LongTermSections)
+            .Where(section => section.IsCollapsible)
+            .All(section => section.IsExpanded);
+    public string BulkProjectExpansionActionText =>
+        AreAllVisibleProjectSectionsExpanded ? "全部收起" : "全部展开";
     public bool ShowHistoryEmptyState => ShowHistoryWeekList && HistoryWeeks.Count == 0;
     public string SelectedHistoryTitle => SelectedHistoryWeekStart is null
         ? string.Empty
@@ -340,6 +351,47 @@ public sealed class MainViewModel : ObservableObject
 
         RefreshSections();
         return isExpanded;
+    }
+
+    public bool ToggleAllVisibleProjectExpansions()
+    {
+        var sections = WeeklySections
+            .Concat(LongTermSections)
+            .Where(section => section.IsCollapsible)
+            .ToList();
+        if (sections.Count == 0)
+        {
+            return false;
+        }
+
+        var expand = sections.Any(section => !section.IsExpanded);
+        foreach (var section in sections)
+        {
+            ProjectExpansionRules.SetExpanded(
+                _data.Settings,
+                section.SectionKind,
+                section.ProjectId,
+                expand);
+        }
+
+        var saved = true;
+        try
+        {
+            _store.Save(_data);
+        }
+        catch
+        {
+            saved = false;
+            StatusMessage = "批量展开状态已更新，但暂时无法保存。";
+        }
+
+        RefreshSections();
+        if (saved)
+        {
+            StatusMessage = expand ? "已展开全部项目任务。" : "已收起全部项目任务。";
+        }
+
+        return expand;
     }
 
     public bool ReconcileStartupRegistration()
@@ -1032,6 +1084,10 @@ public sealed class MainViewModel : ObservableObject
                 currentLongTermTasks[projectId]))
             .OrderBy(section => section.ProjectName, StringComparer.CurrentCultureIgnoreCase)
             .ToList();
+
+        OnPropertyChanged(nameof(CanBulkToggleProjectExpansion));
+        OnPropertyChanged(nameof(AreAllVisibleProjectSectionsExpanded));
+        OnPropertyChanged(nameof(BulkProjectExpansionActionText));
 
         var historicalWeeklyTasks = activeWeeklyTasks
             .Where(task => task.Status == WeeklyTaskStatus.Done)

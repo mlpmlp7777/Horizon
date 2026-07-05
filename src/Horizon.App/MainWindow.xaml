@@ -982,10 +982,25 @@
                 <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto">
                     <StackPanel>
                         <StackPanel Visibility="{Binding IsCurrentWeeklyView, Converter={StaticResource BooleanToVisibilityConverter}}">
-                            <TextBlock Text="本周任务"
-                                       FontSize="14.5"
-                                       FontWeight="SemiBold"
-                                       Foreground="{StaticResource OrbitInkBrush}" />
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock VerticalAlignment="Center"
+                                           Text="本周任务"
+                                           FontSize="14.5"
+                                           FontWeight="SemiBold"
+                                           Foreground="{StaticResource OrbitInkBrush}" />
+                                <Button Grid.Column="1"
+                                        MinWidth="64"
+                                        VerticalAlignment="Center"
+                                        Style="{StaticResource MiniButtonStyle}"
+                                        Content="{Binding BulkProjectExpansionActionText}"
+                                        IsEnabled="{Binding CanBulkToggleProjectExpansion}"
+                                        AutomationProperties.HelpText="展开或收起当前页面中的全部项目任务"
+                                        Click="BulkProjectExpansionButton_OnClick" />
+                            </Grid>
                             <TextBlock Margin="0,4,0,10"
                                        Text="右侧按钮只能贴着屏幕最右边，上下拖动位置，点击后展开面板。"
                                        FontSize="10.5"
