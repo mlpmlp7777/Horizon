@@ -188,6 +188,95 @@
             </Style.Triggers>
         </Style>
 
+        <Style x:Key="QuickAddContextMenuStyle" TargetType="ContextMenu">
+            <Setter Property="Background" Value="{StaticResource OrbitExpandedCardBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource OrbitShellBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="HasDropShadow" Value="False" />
+            <Setter Property="ItemsPanel">
+                <Setter.Value>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal" />
+                    </ItemsPanelTemplate>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ContextMenu">
+                        <Border Padding="8"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="18">
+                            <ItemsPresenter />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="QuickAddMenuItemStyle" TargetType="MenuItem">
+            <Setter Property="Width" Value="104" />
+            <Setter Property="Height" Value="76" />
+            <Setter Property="Margin" Value="3" />
+            <Setter Property="Background" Value="{StaticResource OrbitTaskBrush}" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Foreground" Value="{StaticResource OrbitInkBrush}" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="MenuItem">
+                        <Border x:Name="MenuCard"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="13">
+                            <StackPanel HorizontalAlignment="Center"
+                                        VerticalAlignment="Center">
+                                <Border x:Name="IconCard"
+                                        Width="30"
+                                        Height="30"
+                                        HorizontalAlignment="Center"
+                                        Background="{StaticResource OrbitHeaderBrush}"
+                                        CornerRadius="11">
+                                    <TextBlock x:Name="IconText"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"
+                                               Text="{TemplateBinding Tag}"
+                                               FontSize="13"
+                                               FontWeight="Bold"
+                                               Foreground="{StaticResource OrbitPrimaryBrush}" />
+                                </Border>
+                                <TextBlock x:Name="MenuLabel"
+                                           Margin="4,7,4,0"
+                                           HorizontalAlignment="Center"
+                                           Text="{TemplateBinding Header}"
+                                           TextAlignment="Center"
+                                           FontSize="10.5"
+                                           FontWeight="SemiBold"
+                                           Foreground="{TemplateBinding Foreground}" />
+                            </StackPanel>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter TargetName="MenuCard" Property="Background" Value="{StaticResource OrbitHeaderBrush}" />
+                                <Setter TargetName="MenuCard" Property="BorderBrush" Value="{StaticResource OrbitExpandedBorderBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsMouseCaptureWithin" Value="True">
+                                <Setter TargetName="MenuCard" Property="Background" Value="{StaticResource OrbitPrimaryBrush}" />
+                                <Setter TargetName="MenuCard" Property="BorderBrush" Value="{StaticResource OrbitPrimaryBrush}" />
+                                <Setter TargetName="MenuLabel" Property="Foreground" Value="White" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="MenuCard" Property="Opacity" Value="0.4" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <Style TargetType="TextBlock">
             <Setter Property="Foreground" Value="{StaticResource OrbitInkBrush}" />
         </Style>

@@ -562,6 +562,8 @@ var mainWindowXamlPath = Path.GetFullPath(Path.Combine(
     "..", "..", "..", "..", "..",
     "src", "Horizon.App", "MainWindow.xaml"));
 var mainWindowXaml = File.ReadAllText(mainWindowXamlPath);
+var mainWindowCodeBehindPath = Path.ChangeExtension(mainWindowXamlPath, ".xaml.cs");
+var mainWindowCodeBehind = File.ReadAllText(mainWindowCodeBehindPath);
 var mainWindowDocument = XDocument.Parse(mainWindowXaml);
 
 AssertContains("x:Key=\"OrbitScrollThumbStyle\"", mainWindowXaml,
@@ -594,6 +596,30 @@ AssertContains("IsEnabled=\"{Binding CanBulkToggleProjectExpansion}\"", mainWind
     "main page disables bulk expansion when no project is visible");
 AssertContains("Click=\"BulkProjectExpansionButton_OnClick\"", mainWindowXaml,
     "main page wires the bulk expansion click handler");
+AssertContains("x:Key=\"QuickAddContextMenuStyle\"", mainWindowXaml,
+    "quick-add menu has a dedicated Orbit Blue style");
+AssertContains("x:Key=\"QuickAddMenuItemStyle\"", mainWindowXaml,
+    "quick-add items have a dedicated card style");
+AssertContains("<StackPanel Orientation=\"Horizontal\"", mainWindowXaml,
+    "quick-add items are arranged in two columns");
+AssertContains("CornerRadius=\"18\"", mainWindowXaml,
+    "quick-add menu uses the approved outer radius");
+AssertContains("Property=\"Width\" Value=\"104\"", mainWindowXaml,
+    "quick-add cards use the approved width");
+AssertContains("Property=\"Height\" Value=\"76\"", mainWindowXaml,
+    "quick-add cards use the approved height");
+AssertContains("Placement = PlacementMode.Bottom", mainWindowCodeBehind,
+    "quick-add menu opens below its button");
+AssertContains("PlacementTarget = QuickAddButton", mainWindowCodeBehind,
+    "quick-add menu anchors to the quick-add button");
+AssertContains("\"新建本周任务\", \"周\", \"添加到当前周", mainWindowCodeBehind,
+    "weekly quick-add card keeps its full label and glyph");
+AssertContains("\"新建长期任务\", \"∞\", \"设置起止时间", mainWindowCodeBehind,
+    "long-term quick-add card keeps its full label and glyph");
+AssertContains("_viewModel.OpenCreateWeeklyTask()", mainWindowCodeBehind,
+    "weekly quick-add card keeps its editor callback");
+AssertContains("_viewModel.OpenCreateLongTermTask()", mainWindowCodeBehind,
+    "long-term quick-add card keeps its editor callback");
 
 var verticalScrollBarTemplate = FindKeyedElement(
     mainWindowDocument,

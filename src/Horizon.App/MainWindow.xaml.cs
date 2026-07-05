@@ -1,6 +1,8 @@
 using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
@@ -157,9 +159,20 @@ public partial class MainWindow : Window
 
     private void QuickAddButton_OnClick(object sender, RoutedEventArgs e)
     {
-        var menu = new ContextMenu();
-        menu.Items.Add(BuildMenuItem("新建本周任务", (_, _) => _viewModel.OpenCreateWeeklyTask()));
-        menu.Items.Add(BuildMenuItem("新建长期任务", (_, _) => _viewModel.OpenCreateLongTermTask()));
+        var menu = new ContextMenu
+        {
+            Style = (Style)FindResource("QuickAddContextMenuStyle"),
+            Placement = PlacementMode.Bottom,
+            PlacementTarget = QuickAddButton,
+            HorizontalOffset = 0,
+            VerticalOffset = 6
+        };
+        menu.Items.Add(BuildQuickAddMenuItem(
+            "新建本周任务", "周", "添加到当前周，并归入所选项目",
+            (_, _) => _viewModel.OpenCreateWeeklyTask()));
+        menu.Items.Add(BuildQuickAddMenuItem(
+            "新建长期任务", "∞", "设置起止时间，持续跟踪长期进度",
+            (_, _) => _viewModel.OpenCreateLongTermTask()));
 
         QuickAddButton.ContextMenu = menu;
         menu.IsOpen = true;
@@ -760,9 +773,20 @@ public partial class MainWindow : Window
         }
     }
 
-    private static MenuItem BuildMenuItem(string header, RoutedEventHandler onClick)
+    private MenuItem BuildQuickAddMenuItem(
+        string header,
+        string glyph,
+        string helpText,
+        RoutedEventHandler onClick)
     {
-        var item = new MenuItem { Header = header };
+        var item = new MenuItem
+        {
+            Header = header,
+            Tag = glyph,
+            Style = (Style)FindResource("QuickAddMenuItemStyle")
+        };
+        AutomationProperties.SetName(item, header);
+        AutomationProperties.SetHelpText(item, helpText);
         item.Click += onClick;
         return item;
     }
