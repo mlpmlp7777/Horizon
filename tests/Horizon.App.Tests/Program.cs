@@ -500,6 +500,37 @@ completedWeekly.Status = WeeklyTaskStatus.InProgress;
 WeeklyRolloverService.Reconcile(rolloverData, currentWeekStart, rolloverNowUtc.AddMinutes(1));
 AssertEqual(true, completedWeekly.CompletedAt is null, "restored weekly clears completion time");
 
+var mainWindowXamlPath = Path.GetFullPath(Path.Combine(
+    AppContext.BaseDirectory,
+    "..", "..", "..", "..", "..",
+    "src", "Horizon.App", "MainWindow.xaml"));
+var mainWindowXaml = File.ReadAllText(mainWindowXamlPath);
+
+AssertContains("x:Key=\"OrbitScrollThumbStyle\"", mainWindowXaml,
+    "scrollbar uses a reusable capsule thumb");
+AssertContains("x:Key=\"OrbitVerticalScrollBarTemplate\"", mainWindowXaml,
+    "vertical scrollbar template exists");
+AssertContains("x:Key=\"OrbitHorizontalScrollBarTemplate\"", mainWindowXaml,
+    "horizontal scrollbar template exists");
+AssertContains("<Style TargetType=\"ScrollBar\">", mainWindowXaml,
+    "scrollbar style applies implicitly throughout the window");
+AssertContains("MinHeight=\"30\"", mainWindowXaml,
+    "vertical thumb keeps a usable minimum length");
+AssertContains("MinWidth=\"30\"", mainWindowXaml,
+    "horizontal thumb keeps a usable minimum length");
+AssertContains("Property=\"IsMouseOver\" Value=\"True\"", mainWindowXaml,
+    "scrollbar has a hover state");
+AssertContains("Property=\"IsDragging\" Value=\"True\"", mainWindowXaml,
+    "scrollbar has a dragging state");
+AssertContains("ScrollBar.PageUpCommand", mainWindowXaml,
+    "vertical track preserves page-up behavior");
+AssertContains("ScrollBar.PageDownCommand", mainWindowXaml,
+    "vertical track preserves page-down behavior");
+AssertContains("ScrollBar.PageLeftCommand", mainWindowXaml,
+    "horizontal track preserves page-left behavior");
+AssertContains("ScrollBar.PageRightCommand", mainWindowXaml,
+    "horizontal track preserves page-right behavior");
+
 Console.WriteLine("Panel layout tests passed.");
 
 static void AssertRect(Rect actual, Rect expected, string name)
@@ -516,6 +547,14 @@ static void AssertEqual<T>(T expected, T actual, string name)
     if (!EqualityComparer<T>.Default.Equals(expected, actual))
     {
         throw new InvalidOperationException($"{name}: expected {expected}, got {actual}");
+    }
+}
+
+static void AssertContains(string expected, string actual, string name)
+{
+    if (!actual.Contains(expected, StringComparison.Ordinal))
+    {
+        throw new InvalidOperationException($"{name}: missing {expected}");
     }
 }
 

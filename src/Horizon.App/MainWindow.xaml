@@ -46,6 +46,137 @@
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
         <conv:EnumDisplayConverter x:Key="EnumDisplayConverter" />
 
+        <Style x:Key="OrbitScrollPageButtonStyle" TargetType="RepeatButton">
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="IsTabStop" Value="False" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RepeatButton">
+                        <Border Background="Transparent" />
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="OrbitScrollThumbStyle" TargetType="Thumb">
+            <Setter Property="Background" Value="{StaticResource OrbitPrimaryBrush}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Thumb">
+                        <Border Background="{TemplateBinding Background}"
+                                CornerRadius="4" />
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <ControlTemplate x:Key="OrbitVerticalScrollBarTemplate" TargetType="ScrollBar">
+            <Grid Width="12" Background="Transparent">
+                <Border x:Name="TrackChrome"
+                        Width="10"
+                        HorizontalAlignment="Center"
+                        Background="Transparent"
+                        CornerRadius="5" />
+                <Track x:Name="PART_Track"
+                       IsDirectionReversed="True"
+                       Orientation="Vertical">
+                    <Track.DecreaseRepeatButton>
+                        <RepeatButton Command="{x:Static ScrollBar.PageUpCommand}"
+                                      Style="{StaticResource OrbitScrollPageButtonStyle}" />
+                    </Track.DecreaseRepeatButton>
+                    <Track.Thumb>
+                        <Thumb x:Name="ScrollThumb"
+                               Width="6"
+                               MinHeight="30"
+                               HorizontalAlignment="Center"
+                               Style="{StaticResource OrbitScrollThumbStyle}" />
+                    </Track.Thumb>
+                    <Track.IncreaseRepeatButton>
+                        <RepeatButton Command="{x:Static ScrollBar.PageDownCommand}"
+                                      Style="{StaticResource OrbitScrollPageButtonStyle}" />
+                    </Track.IncreaseRepeatButton>
+                </Track>
+            </Grid>
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter TargetName="TrackChrome"
+                            Property="Background"
+                            Value="{StaticResource OrbitCollapsedCardBrush}" />
+                    <Setter TargetName="ScrollThumb" Property="Width" Value="8" />
+                </Trigger>
+                <Trigger SourceName="ScrollThumb" Property="IsDragging" Value="True">
+                    <Setter TargetName="ScrollThumb"
+                            Property="Background"
+                            Value="{StaticResource OrbitAccentInkBrush}" />
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter TargetName="ScrollThumb" Property="Opacity" Value="0.4" />
+                </Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate>
+
+        <ControlTemplate x:Key="OrbitHorizontalScrollBarTemplate" TargetType="ScrollBar">
+            <Grid Height="12" Background="Transparent">
+                <Border x:Name="TrackChrome"
+                        Height="10"
+                        VerticalAlignment="Center"
+                        Background="Transparent"
+                        CornerRadius="5" />
+                <Track x:Name="PART_Track"
+                       IsDirectionReversed="False"
+                       Orientation="Horizontal">
+                    <Track.DecreaseRepeatButton>
+                        <RepeatButton Command="{x:Static ScrollBar.PageLeftCommand}"
+                                      Style="{StaticResource OrbitScrollPageButtonStyle}" />
+                    </Track.DecreaseRepeatButton>
+                    <Track.Thumb>
+                        <Thumb x:Name="ScrollThumb"
+                               Height="6"
+                               MinWidth="30"
+                               VerticalAlignment="Center"
+                               Style="{StaticResource OrbitScrollThumbStyle}" />
+                    </Track.Thumb>
+                    <Track.IncreaseRepeatButton>
+                        <RepeatButton Command="{x:Static ScrollBar.PageRightCommand}"
+                                      Style="{StaticResource OrbitScrollPageButtonStyle}" />
+                    </Track.IncreaseRepeatButton>
+                </Track>
+            </Grid>
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter TargetName="TrackChrome"
+                            Property="Background"
+                            Value="{StaticResource OrbitCollapsedCardBrush}" />
+                    <Setter TargetName="ScrollThumb" Property="Height" Value="8" />
+                </Trigger>
+                <Trigger SourceName="ScrollThumb" Property="IsDragging" Value="True">
+                    <Setter TargetName="ScrollThumb"
+                            Property="Background"
+                            Value="{StaticResource OrbitAccentInkBrush}" />
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter TargetName="ScrollThumb" Property="Opacity" Value="0.4" />
+                </Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate>
+
+        <Style TargetType="ScrollBar">
+            <Setter Property="Width" Value="12" />
+            <Setter Property="MinWidth" Value="12" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{StaticResource OrbitPrimaryBrush}" />
+            <Setter Property="Template" Value="{StaticResource OrbitVerticalScrollBarTemplate}" />
+            <Style.Triggers>
+                <Trigger Property="Orientation" Value="Horizontal">
+                    <Setter Property="Width" Value="Auto" />
+                    <Setter Property="MinWidth" Value="0" />
+                    <Setter Property="Height" Value="12" />
+                    <Setter Property="MinHeight" Value="12" />
+                    <Setter Property="Template" Value="{StaticResource OrbitHorizontalScrollBarTemplate}" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
         <Style TargetType="TextBlock">
             <Setter Property="Foreground" Value="{StaticResource OrbitInkBrush}" />
         </Style>
