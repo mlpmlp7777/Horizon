@@ -44,9 +44,9 @@ AssertContains("<StackPanel Orientation=\"Horizontal\"", mainWindowXaml,
     "quick-add items are arranged in two columns");
 AssertContains("CornerRadius=\"18\"", mainWindowXaml,
     "quick-add menu uses the approved outer radius");
-AssertContains("Width=\"104\"", mainWindowXaml,
+AssertContains("Property=\"Width\" Value=\"104\"", mainWindowXaml,
     "quick-add cards use the approved width");
-AssertContains("Height=\"76\"", mainWindowXaml,
+AssertContains("Property=\"Height\" Value=\"76\"", mainWindowXaml,
     "quick-add cards use the approved height");
 AssertContains("Placement = PlacementMode.Bottom", mainWindowCodeBehind,
     "quick-add menu opens below its button");
